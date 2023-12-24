@@ -1,0 +1,17 @@
+python-dotenv
+httpcore
+python-telegram-bot==20.4
+aiohttp
+aiodns
+python-i18n[YAML]
+
+
+# all of these are OPTIONAL, only needed if you want to use additional features
+sentry-sdk
+pydub
+mixpanel
+mixpanel-py-async
+retry
+redis[hiredis]
+boto3
+deep_translator
