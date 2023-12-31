@@ -3,8 +3,6 @@ import os
 import queue
 import threading
 
-from lib.bots.command_handler import CommandHandler
-
 
 class Message:
     def __init__(self,
@@ -216,9 +214,10 @@ class MessagingService:
 
 class BaseBot:
     def __init__(self,
+                 internal_queue,
                  handler_fn,
                  ):
-        self.internal_queue = queue.Queue()
+        self.internal_queue = internal_queue
 
         self.senders = [handler_fn() for _ in range(int(os.cpu_count()))]
 
@@ -240,6 +239,7 @@ class BaseBot:
 
         # start everything
         [t.start() for t in self.threads]
+        print("Bot ready")
         self.start()
         print("blowing things up, stay calm...")
         [s.stop() for s in self.senders]

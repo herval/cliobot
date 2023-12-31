@@ -41,4 +41,4 @@ class InMemoryCache(BaseCache):
         self.cache[f'context_{app_name}_{chat_id}'] = context
 
     def get_chat_context(self, app_name, chat_id):
-        return self.cache.get(f'context_{app_name}_{chat_id}', None)
+        return self.cache.get(f'context_{app_name}_{chat_id}', {})

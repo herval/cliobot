@@ -9,10 +9,12 @@ It comes with multiuser handling out of the box, and minimal dependencies (every
 Currently it supports Telegram out of the box, with other platforms coming soon
 
 
-## Key Features
+## Features
 
 - Full i18n support, with english and brazilian portuguese out of the box
 - Multiuser support
+- File storage support (local & S3)
+- Automatic message translation using Google Translate API
 
 
 ## Installing
@@ -46,12 +48,24 @@ These are all deactivated by default, but easily enabled:
 
 
 
+## Prompt parsing
+
+Cliobot uses a simple prompt parsing system to allow for more complex interactions. It's based on the following format:
+
+```
+/<command> <text prompt> [--<param_name> <value>]+
+```
+
+Each command handler is defined as a pydantic model, and the parameters are automatically parsed and validated.
+
+
 ## Configuring
 
 
 
 ## Running on K8s
 
+TODO
 
 
 ## Writing plugins
@@ -60,5 +74,8 @@ These are all deactivated by default, but easily enabled:
 
 ## Planned features
 
+- S3 file storage
+- 
 - Discord integration
 - Whatsapp integration
+
