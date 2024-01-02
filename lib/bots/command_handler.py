@@ -152,7 +152,6 @@ class CommandHandler:
                 audio=update.audio,
                 voice=update.voice,
                 is_forward=update.is_forward,
-                function_call=context.pop('function_call') if context else None,
             )
         except Exception as e:
             self.metrics.capture_exception(e, self.app_name, context.user_id)

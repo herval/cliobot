@@ -207,7 +207,7 @@ class MessagingService:
     async def delete_message(self, message_id, chat_id):
         raise NotImplementedError()
 
-    async def send_media(self, reply_to_message_id, chat_id, media, text, context=None, reply_buttons=None,
+    async def send_media(self, chat_id, media, text, reply_to_message_id=None, context=None, reply_buttons=None,
                          buttons=None):
         raise NotImplementedError()
 

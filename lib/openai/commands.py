@@ -1,6 +1,7 @@
-from dataclasses import Field
+from pydantic import Field
 
 from lib.commands import BaseCommand, BasePromptModel
+from lib.openai.client import VALID_DALLE3_SIZES
 
 
 # A set of commands using OpenAI's APIs
@@ -25,8 +26,7 @@ class Ask(BaseCommand):
 class Dalle3Prompt(BasePromptModel):
     prompt: str = None
     size: str = Field(default='1024x1024',
-                      alias='size',
-                      error_msg='Supported sizes: 1024x1792, 1024x1024, 1792x1024')
+                      examples=VALID_DALLE3_SIZES)
 
 class Dalle3(BaseCommand):
     def __init__(self, openai_client):
@@ -35,13 +35,18 @@ class Dalle3(BaseCommand):
             name="dalle3",
             description="Generates an image using DALL-E 3",
             examples=[
-                "/dalle3",
+                "/dalle3 a hamster in space --size 1024x1024",
             ],
             prompt_class=Dalle3Prompt
         )
         self.openai_client = openai_client
 
     async def run(self, parsed, message, context, messaging_service):
+        await messaging_service.send_message(
+            text="Generating image, please wait",
+            chat_id=message.chat_id,
+        )
+
         res = self.openai_client.dalle3_txt2img(
             prompt=parsed.prompt,
             num=1,
@@ -50,6 +55,9 @@ class Dalle3(BaseCommand):
 
         return await messaging_service.send_media(
             text=res[0].revised_prompt,
-            media=res[0].url,
+            media={
+                'image': res[0].url
+            },
             chat_id=message.chat_id,
+            reply_to_message_id=message.message_id,
         )

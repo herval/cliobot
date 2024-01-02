@@ -41,7 +41,7 @@ class App(BaseApp):
         commands = [k() for k in BASE_COMMANDS]
 
         if config.get('openai', None):
-            from lib.openai import OpenAIClient
+            from lib.openai.client import OpenAIClient
             from lib.openai.commands import Dalle3
 
             openai_client = OpenAIClient(
