@@ -7,20 +7,26 @@ from lib.openai.client import VALID_DALLE3_SIZES
 # A set of commands using OpenAI's APIs
 
 class Ask(BaseCommand):
-    def __init__(self, messaging_service, openai_client):
+    def __init__(self, openai_client):
         super().__init__(
             command='ask',
             name="ask",
             description="Ask a question using GPT-4",
             examples=[
-                "/ask",
+                "/ask what's the meaning of life?",
             ],
         )
         self.openai_client = openai_client
 
     async def run(self, parsed, message, context, messaging_service):
-        pass
-
+        res = self.openai_client.ask(
+            message.text,
+        )
+        await messaging_service.send_message(
+            text=res,
+            chat_id=message.chat_id,
+            reply_to_message_id=message.message_id,
+        )
 
 
 class Dalle3Prompt(BasePromptModel):

@@ -53,12 +53,12 @@ def parse_message(message_text, context_dict, pydantic_type) -> BasePromptModel:
     return pydantic_type(**params)
 
 
-def notify_errors(exc, messaging_service, chat_id, reply_to_message_id=None):
+async def notify_errors(exc, messaging_service, chat_id, reply_to_message_id=None):
     if isinstance(exc, ValidationError):
         errors = []
         for e in exc.errors():
             errors.append(f'{e["loc"][0]}: {e["msg"]}')
-        messaging_service.send_message(
+        await messaging_service.send_message(
             text='Whoops!\n' + '\n'.join(errors),
             chat_id=chat_id,
             reply_to_message_id=reply_to_message_id,
@@ -81,7 +81,7 @@ class BaseCommand:
         try:
             return parse_message(message.text, context.to_dict(), self.prompt_class)
         except ValidationError as e:
-            notify_errors(e, messaging_service, message.chat_id, message.message_id)
+            await notify_errors(e, messaging_service, message.chat_id, message.message_id)
             return None
 
 

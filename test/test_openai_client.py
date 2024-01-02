@@ -49,3 +49,12 @@ class TestOpenAIClient(unittest.TestCase):
         print(res)
         assert len(res) == 1  # always 1
 
+
+    def test_ask(self):
+        res = self.openai_client.ask('What is the meaning of life?')
+        print(res)
+        assert len(res) > 0
+
+        res = self.azure_client.ask('What is the meaning of life?')
+        print(res)
+        assert len(res) > 0

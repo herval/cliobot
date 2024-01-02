@@ -42,7 +42,7 @@ class App(BaseApp):
 
         if config.get('openai', None):
             from lib.openai.client import OpenAIClient
-            from lib.openai.commands import Dalle3
+            from lib.openai.commands import Dalle3, Ask
 
             openai_client = OpenAIClient(
                 endpoints=config['openai']['endpoints'],
@@ -50,6 +50,7 @@ class App(BaseApp):
             )
 
             commands.append(*[
+                Ask(openai_client),
                 Dalle3(openai_client),
             ])
 

@@ -63,6 +63,21 @@ class OpenAIClient:
         )
         return res.data
 
+
+    def ask(self, prompt):
+        client, model = self._llm_client()
+        res = client.chat.completions.create(
+            model=model,
+            messages=[
+                {
+                    'role': 'user',
+                    'content': prompt,
+                }
+            ]
+        )
+        return res.choices[0].message.content
+
+
     def _audio_client(self):
         if len(self.azure_clients) > 0:
             for i, v in enumerate(self.azure_configs):
@@ -78,3 +93,11 @@ class OpenAIClient:
                     return self.azure_clients[i], v['model']
 
         return self.v1_clients[0], 'dall-e-3'
+
+    def _llm_client(self):
+        if len(self.azure_clients) > 0:
+            for i, v in enumerate(self.azure_configs):
+                if v['kind'] == 'gpt':
+                    return self.azure_clients[i], v['model']
+
+        return self.v1_clients[0], 'gpt-4'
