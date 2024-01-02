@@ -1,0 +1,50 @@
+env: development
+mode: command
+locale: en
+
+openai:
+  endpoints:
+    - api_key: sk-...
+      api_type: open_ai
+      base_url: https://api.openai.com/v1/
+
+    - api_key: azureapikeyhere
+      api_type: azure
+      api_version: 2023-10-01-preview
+      base_url: https://xxxxx.openai.azure.com
+      model: deploymentname
+      kind: gpt
+
+    - api_key: azureapikeyhere
+      api_type: azure
+      api_version: 2
+      base_url: https://xxxxx.openai.azure.com
+      model: deploymentname
+      kind: embeddings
+
+    - api_key: azureapikeyhere
+      api_type: azure
+      api_version: 2023-12-01-preview
+      base_url: https://xxxxx.openai.azure.com
+      model: dalle3
+      kind: dalle3
+
+    - api_key: azureapikeyhere
+      api_type: azure
+      api_version: 2023-12-01-preview
+      base_url: https://xxxxx.openai.azure.com
+      model: whisper1
+      kind: whisper
+
+bot:
+  platform: telegram
+  token: "1234567890:ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
+
+storage:
+  driver: local
+  folder: tmp/
+#  driver: s3
+#  bucket: my-bucket
+#  zone: eu-west-1
+#  access_key: my-key
+# secret_key: my-secret

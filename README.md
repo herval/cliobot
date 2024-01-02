@@ -1,17 +1,47 @@
 # Cliobot - multimodal generative AI bot for chat platforms
 
+![Clio Bot](clio.jpg)
+
 Cliobot is a modular bot platform for generative AI agents. It's goal is to provide a simple, easy to use and extendable platform for running generative AI agents that can handle audio, video, text and images, on any chat platform. 
 
 It can be easily extend it to use multiple APIs and services, from Stable Diffusion to OpenAI, and you can run it on your own device or deploy it online. 
 
-It comes with multiuser handling out of the box, and minimal dependencies (everything stays in memory by default).
-
-Currently it supports Telegram out of the box, with other platforms coming soon
+It comes with Telegram support and multiuser handling out of the box, and minimal dependencies (everything stays in memory by default).
 
 
-## Features
+## The Basic
 
-- Full i18n support, with english and brazilian portuguese out of the box
+Cliobot has two main working modes: __command mode__ or __LLM mode__
+
+In __command mode__, you interact by using __slash commands__ (messages starting with a /). It comes with a set default of slash commands and you can easily create yor own.
+
+[WIP] In __LLM mode__, the bot works like chatgpt & other multimodal chatbots out there: it follows a configurable system prompt that defines its core behavior and can use functions to perform actions (including executing code or browsing the web).
+
+Notice both modes use the same command definitions, so the only difference between them is a tradeoff between more natural language interpretation versus cost (since running GPT4 & other models can get expensive quickly).
+
+
+## Command syntax
+
+Cliobot uses a simple prompt parsing system (common across apps such as Midjourney & others). It's based on the following format:
+
+```
+/<command> <text prompt>? [--<param_name> <value>]+
+```
+
+Each command handler is defined as a pydantic model, and the parameters are automatically parsed and validated.
+
+When a certain command requires multiple inputs, such as image, the bot will ask for them in sequence, then run the command after you provide all the inputs.
+
+An example of a command using the default replicate-backed image generation command would be as follows:
+
+```
+.......
+```
+
+
+## Key features
+
+- OpenAI API support for DALL-E, GPT-3, GPT-4 and Whisper, including Azure support and multiple API keys
 - Multiuser support
 - File storage support (local & S3)
 - Automatic message translation using Google Translate API
@@ -23,7 +53,7 @@ Running a bot locally is simple:
 
 - Clone this repo
 - Setup the python env
-- Rename .env.example to .env.development and set the appropriate variables you want. 
+- Rename `config.yml.example` to `config.yml` and set the appropriate variables you want. 
 
 
 ### Running Cliobot on Telegram
@@ -46,17 +76,6 @@ These are all deactivated by default, but easily enabled:
 - Automatic message translation using Google Translate API
 - Utilization metrics using MixPanel
 
-
-
-## Prompt parsing
-
-Cliobot uses a simple prompt parsing system to allow for more complex interactions. It's based on the following format:
-
-```
-/<command> <text prompt> [--<param_name> <value>]+
-```
-
-Each command handler is defined as a pydantic model, and the parameters are automatically parsed and validated.
 
 
 ## Configuring

@@ -2,7 +2,7 @@ import base64
 import os
 import shlex
 from io import BytesIO
-
+import requests
 
 def abs_path(path):
     return os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", path))
@@ -11,6 +11,11 @@ def abs_path(path):
 def is_empty(txt):
     return txt is None or (isinstance(txt, str) and txt.strip() == '') or False
 
+def locale(context):
+    if context.get('language', 'en') == 'br':
+        return 'br'
+    else:
+        return 'en'
 
 def is_blank(hash, key):
     if key not in hash or is_empty(hash[key]):
@@ -51,21 +56,3 @@ def image_to_base64(image):
     if not d.startswith('data:image/png;base64,'):
         d = 'data:image/png;base64,' + d
     return d
-
-def parse_command_line(command_line, pydantic_type):
-    tokens = shlex.split(command_line)
-    args = {}
-
-    # Using a variable to remember the last parameter name
-    last_param = None
-    for token in tokens:
-        if token.startswith('-'):
-            # Normalize the parameter name (remove leading dashes)
-            normalized_param = token.lstrip('-')
-            last_param = normalized_param
-        else:
-            if last_param:
-                args[last_param] = token
-                last_param = None
-
-    return pydantic_type(**args)

@@ -1,5 +1,4 @@
 import os
-import queue
 
 import i18n
 
@@ -15,11 +14,11 @@ from lib.utils import abs_path
 class BaseApp:
     def __init__(self,
                  internal_queue,
+                 storage,
                  metrics=None,
                  error_handler=None,
                  cache=None,
                  db=None,
-                 storage=None,
                  translator=None
                  ):
         self.error_handler = error_handler or BaseErrorHandler()
@@ -33,7 +32,7 @@ class BaseApp:
 
         self.db = db or InMemoryDb()
 
-        self.storage = storage or LocalStorage(abs_path('data'))
+        self.storage = storage
 
         self.temp_dir = abs_path("tmp")
         os.makedirs(self.temp_dir, exist_ok=True)

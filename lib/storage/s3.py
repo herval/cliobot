@@ -2,12 +2,12 @@ import boto3
 from botocore.exceptions import ClientError
 
 class S3Storage:
-    def __init__(self, access_key, secret, bucket):
+    def __init__(self, access_key, secret, bucket, region):
         self.bucket = bucket
         self.s3 = boto3.client('s3',
                                aws_access_key_id=access_key,
                                aws_secret_access_key=secret,
-                               region_name='us-east-1')
+                               region_name=region)
         self.bucket = bucket
         print(f'Connected to S3')
 

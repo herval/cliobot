@@ -7,16 +7,16 @@ from i18n import t
 
 from lib.bots.models import Message, CachedContext
 from lib.commands import BaseCommand
-from lib.utils import get_or_default
+from lib.utils import get_or_default, locale
 
 
 def help_commands_str(context, commands):
-    return '\n'.join([f'/{k} - {t(f"help.{k.name}", locale=locale(context))}' for k in commands])
+    return '\n'.join([f'/{k.command} - {k.description}' for k in commands])
 
 
-class HelpCommand(BaseCommand):
+class Help(BaseCommand):
 
-    def __init__(self, messaging_service, commands):
+    def __init__(self, commands):
         super().__init__(
             command='help',
             name="help",
@@ -25,11 +25,10 @@ class HelpCommand(BaseCommand):
                 "/help",
             ],
         )
-        self.messaging_service = messaging_service
         self.commands = commands
 
-    async def run(self, message, context):
-        return await self.messaging_service.send_message(
+    async def run(self, parsed, message, context, messaging_service):
+        return await messaging_service.send_message(
             reply_to_message_id=message.message_id,
             chat_id=message.chat_id,
             text=t('instructions.help',
@@ -38,8 +37,8 @@ class HelpCommand(BaseCommand):
             reply_buttons=[
                 [
                     {
-                        'text': t('button.read_docs', locale=locale(context)),
-                        'url': f"https://clio.so/bot/docs",
+                        'text': t('buttons.read_docs', locale=locale(context)),
+                        'url': f"https://github.com/herval/cliobot",
                         'inline_mode': False,
                     }
                 ]
@@ -56,13 +55,6 @@ def get_value(update, context, key, default=None):
         return res
 
     return context.get(key, default)
-
-
-def locale(context):
-    if context.get('language', 'en') == 'br':
-        return 'br'
-    else:
-        return 'en'
 
 
 def app_name(bot_name):
@@ -133,7 +125,9 @@ class CommandHandler:
         })
 
         try:
-            await command.run(update, context)
+            parsed = await command.parse(update, context, self.messaging_service)
+            if parsed and await command.run(parsed, update, context, self.messaging_service):
+                context.clear()
         except Exception as e:
             traceback.print_exc()
             self.metrics.capture_exception(exc_info(), self.app_name, context.user_id)
@@ -196,8 +190,7 @@ class CommandHandler:
                 }
             )
             await self.exec(
-                HelpCommand(
-                    self.messaging_service,
+                Help(
                     self.commands,
                 ), update, context)  # TODO
 
