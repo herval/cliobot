@@ -15,10 +15,10 @@ class BaseApp:
     def __init__(self,
                  internal_queue,
                  storage,
+                 db,
                  metrics=None,
                  error_handler=None,
                  cache=None,
-                 db=None,
                  translator=None
                  ):
         self.error_handler = error_handler or BaseErrorHandler()
@@ -30,7 +30,7 @@ class BaseApp:
 
         self.cache = cache or InMemoryCache()
 
-        self.db = db or InMemoryDb()
+        self.db = db
 
         self.storage = storage
 

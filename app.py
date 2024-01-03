@@ -33,9 +33,20 @@ class App(BaseApp):
         else:
             raise Exception('unsupported storage driver:', storage_driver)
 
+        db_driver = config['db']['driver']
+        if db_driver == 'sqlite3':
+            from lib.db.sqlite import SqliteDb
+            db = SqliteDb()
+        elif db_driver == 'inmemory':
+            from lib.db import InMemoryDb
+            db = InMemoryDb()
+        else:
+            raise Exception('unsupported db driver:', db_driver)
+
         super().__init__(
             internal_queue=queue.Queue(),
             storage=storage,
+            db=db,
         )
 
         commands = [k() for k in BASE_COMMANDS]
@@ -49,7 +60,7 @@ class App(BaseApp):
                 metrics=self.metrics,
             )
 
-            commands.append(*[
+            commands.extend([
                 Ask(openai_client),
                 Dalle3(openai_client),
             ])

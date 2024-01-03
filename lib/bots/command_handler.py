@@ -159,7 +159,7 @@ class CommandHandler:
         if context.user_id is None:
             session = self.db.create_or_get_chat_session(update.chat_user_id, app=self.app_name)
             context.chat_id = update.chat_id
-            context.user_id = session.get('user_id', None)
+            context.user_id = session.get('chat_user_id', None)
 
         if update.reply_to_message_id and not update.reply_to_message:
             print("Loading reply...")

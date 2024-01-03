@@ -1,4 +1,21 @@
-class InMemoryDb:
+class Database:
+
+    def get_chat_context(self, app_name, chat_id):
+        raise NotImplementedError()
+
+    def set_chat_context(self, app_name, chat_id, context):
+        raise NotImplementedError()
+
+    def create_or_get_chat_session(self, chat_user_id, app):
+        raise NotImplementedError()
+
+    def save_message(self, chat_user_id, chat_id, text, app, external_id,
+                     image=None, audio=None, voice=None, video=None,
+                     is_forward=False, context=None):
+        raise NotImplementedError()
+
+
+class InMemoryDb(Database):
     def __init__(self):
         print("**** Keeping state in memory only ****")
 
@@ -7,14 +24,8 @@ class InMemoryDb:
         self.messages = {}
         self.chats = {}
 
-
     def update_job(self, job_id, app_name, fields):
         pass
-
-    def get_or_create_profile(self, user_id):
-        return {
-            'user_id': user_id,
-        }
 
     def get_chat_context(self, app_name, chat_id):
         return self.chats.get(chat_id, {})

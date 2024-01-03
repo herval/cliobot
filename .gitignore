@@ -5,3 +5,4 @@ config.yml
 **.pyc
 /config.test_azure.yml
 /config.test_openai.yml
+cliobot.db
