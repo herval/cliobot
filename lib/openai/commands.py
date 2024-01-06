@@ -20,11 +20,11 @@ class Ask(BaseCommand):
         )
         self.openai_client = openai_client
 
-    async def run(self, parsed, message, context, messaging_service):
+    async def run(self, parsed, message, context, bot):
         res = self.openai_client.ask(
             parsed.prompt
         )
-        await messaging_service.send_message(
+        await bot.messaging_service.send_message(
             text=res,
             chat_id=message.chat_id,
             reply_to_message_id=message.message_id,

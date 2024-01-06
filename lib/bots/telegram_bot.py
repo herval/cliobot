@@ -224,6 +224,16 @@ class TelegramMessagingService(MessagingService):
 
     @convert_exceptions
     @retry(TimedOut, tries=2, delay=0.5)
+    async def edit_message(self, message_id, chat_id, text, context=None, reply_buttons=None):
+        await self.initialize()
+        return await self.bot.edit_message_text(
+            chat_id=chat_id,
+            message_id=message_id,
+            text=text or '',
+        )
+
+    @convert_exceptions
+    @retry(TimedOut, tries=2, delay=0.5)
     async def send_media(self, chat_id, media, reply_to_message_id=None, context=None, text=None, reply_buttons=None,
                          buttons=None):
         await self.initialize()
