@@ -65,12 +65,14 @@ class Dalle3(BaseCommand):
         )
 
         await bot.messaging_service.edit_message_media(
+            chat_id=msg.chat_id,
             message_id=msg.id,
             media={
                 'image': res[0].url
             },
         )
         await bot.messaging_service.edit_message(
+            chat_id=msg.chat_id,
             message_id=msg.id,
             text=res[0].revised_prompt,
         )
