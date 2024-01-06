@@ -1,3 +1,4 @@
+import openai
 from pydantic import Field
 
 from lib.commands import BaseCommand, BasePromptModel
@@ -58,23 +59,30 @@ class Dalle3(BaseCommand):
             reply_to_message_id=message.message_id,
         )
 
-        res = self.openai_client.dalle3_txt2img(
-            prompt=parsed.prompt,
-            num=1,
-            size=parsed.size,
-        )
+        try:
+            res = self.openai_client.dalle3_txt2img(
+                prompt=parsed.prompt,
+                num=1,
+                size=parsed.size,
+            )
 
-        await bot.messaging_service.edit_message_media(
-            chat_id=msg.chat_id,
-            message_id=msg.id,
-            media={
-                'image': res[0].url
-            },
-        )
-        await bot.messaging_service.edit_message(
-            chat_id=msg.chat_id,
-            message_id=msg.id,
-            text=res[0].revised_prompt,
-        )
+            await bot.messaging_service.edit_message_media(
+                chat_id=msg.chat_id,
+                message_id=msg.id,
+                media={
+                    'image': res[0].url
+                },
+            )
+            await bot.messaging_service.edit_message(
+                chat_id=msg.chat_id,
+                message_id=msg.id,
+                text=res[0].revised_prompt,
+            )
+        except openai.BadRequestError as e:
+            await bot.messaging_service.edit_message(
+                chat_id=msg.chat_id,
+                message_id=msg.id,
+                text=e.message,
+            )
 
         return True
