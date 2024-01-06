@@ -18,9 +18,9 @@ class ClearContext(BaseCommand):
             ],
         )
 
-    async def run(self, parsed, message: Message, context: Context, messaging_service):
+    async def run(self, parsed, message: Message, context: Context, bot):
         context.clear()
-        return await messaging_service.send_message(
+        return await bot.messaging_service.send_message(
             text=t('result.clear_context', locale=locale(context)),
             chat_id=message.chat_id,
         )
@@ -37,10 +37,10 @@ class PrintContext(BaseCommand):
             ],
         )
 
-    async def run(self, parsed, message: Message, context: Context, messaging_service):
+    async def run(self, parsed, message: Message, context: Context, bot):
         ctx = '\n'.join([f'{k}: {v}' for k, v in context.context.items() if v is not None])
 
-        return await messaging_service.send_message(
+        return await bot.messaging_service.send_message(
             text=t('result.current_context', context=ctx, locale=locale(context)),
             chat_id=message.chat_id,
         )

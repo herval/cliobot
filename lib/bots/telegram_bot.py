@@ -356,30 +356,34 @@ def reply_markup(reply_buttons):
 
 class TelegramBot(BaseBot):
     def __init__(self,
-                 internal_queue,
-                 handler_fn,
                  apikey,
                  app_name,
-                 bot_language,
-                 cache,
                  commands,
+                 db,
+                 bot_id,
+                 **kwargs
                  ):
+        self.messaging_service = TelegramMessagingService(
+            apikey=apikey,
+            app_name=app_name,
+            bot_id=bot_id,
+            db=db,
+            commands=commands,
+        )
         self.app = ApplicationBuilder().token(apikey).build()
-        self.apikey = apikey
-        self.commands = commands
-        self.bot = None
-        self.app_name = app_name
-        self.bot_language = bot_language
-        self.cache = cache
 
         super().__init__(
-            internal_queue=internal_queue,
-            handler_fn=handler_fn,
+            apikey=apikey,
+            app_name=app_name,
+            commands=commands,
+            db=db,
+            bot_id=bot_id,
+            **kwargs,
         )
 
     def handler_adapter(self, command):
-        async def wrapper(update, context, third=None):
-            print(update, context, third)
+        async def wrapper(update, context):
+            print(update, context)
             msg = message_from_telegram(
                 message=update.effective_message,
                 user=update.effective_user,

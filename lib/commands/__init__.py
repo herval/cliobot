@@ -7,6 +7,7 @@ from pydantic import BaseModel, ValidationError
 class BasePromptModel(BaseModel):
     command: str
 
+
 def parse_message(message_text, context_dict, pydantic_type) -> BasePromptModel:
     # Split the input string into tokens
     tokens = message_text.split()
@@ -84,10 +85,17 @@ class BaseCommand:
             await notify_errors(e, messaging_service, message.chat_id, message.message_id)
             return None
 
+    async def run(self, parsed, message, context, bot) -> bool:
+        """
+        execute the command and return True if the command was completely handled, or False if the command was either
+        not handled or needs more data (eg. a file upload is pending).
 
-    # execute the command and return True if the command was completely handled, or False if the command was either
-    # not handled or needs more data (eg. a file upload is pending).
-    #
-    # After a command is handled, the current context is cleared.
-    async def run(self, parsed, message, context, messaging_service) -> bool:
+        After a command is handled, the current context is cleared.
+
+        :param parsed:
+        :param message:
+        :param context:
+        :param bot: bot instance
+        :return:
+        """
         raise NotImplementedError()

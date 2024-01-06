@@ -1,10 +1,17 @@
+import os
 import queue
 
 import yaml
 
-from lib.baseapp import BaseApp
+import i18n
 from lib.bots.command_handler import CommandHandler
+from lib.cache import InMemoryCache
 from lib.commands.context import ClearContext, PrintContext
+from lib.commands.help import Help
+from lib.errors import BaseErrorHandler
+from lib.metrics import BaseMetrics
+from lib.translator import NullTranslator
+from lib.utils import abs_path
 
 BASE_COMMANDS = [
     ClearContext,
@@ -12,7 +19,7 @@ BASE_COMMANDS = [
 ]
 
 
-class App(BaseApp):
+class App:
 
     def __init__(self):
         with open('config.yml', 'r') as file:
@@ -43,11 +50,8 @@ class App(BaseApp):
         else:
             raise Exception('unsupported db driver:', db_driver)
 
-        super().__init__(
-            internal_queue=queue.Queue(),
-            storage=storage,
-            db=db,
-        )
+        error_handler = BaseErrorHandler()
+        metrics = BaseMetrics(error_handler)
 
         commands = [k() for k in BASE_COMMANDS]
 
@@ -57,7 +61,7 @@ class App(BaseApp):
 
             openai_client = OpenAIClient(
                 endpoints=config['openai']['endpoints'],
-                metrics=self.metrics,
+                metrics=metrics,
             )
 
             commands.extend([
@@ -65,50 +69,56 @@ class App(BaseApp):
                 Dalle3(openai_client),
             ])
 
+        self.internal_queue = queue.Queue()
+
+        i18n.load_path.append(abs_path('i18n'))
+        i18n.set('filename_format', '{locale}.{format}')
+
+        cache = InMemoryCache()
+        db = db
+
+        temp_dir = abs_path("tmp")
+        os.makedirs(temp_dir, exist_ok=True)
+
+        translator = NullTranslator()
+
+        if config['mode'] == 'command':
+            handler = lambda: CommandHandler(
+                fallback_command=Help(
+                    commands,
+                ),
+                commands=commands,
+            )
+        else:
+            raise Exception('unsupported mode:', config['mode'])
+
         plat = config['bot']['platform']
         if plat == 'telegram':
             from lib.bots.telegram_bot import TelegramBot
             from lib.bots.telegram_bot import telegram_bot_id
-            from lib.bots.telegram_bot import TelegramMessagingService
 
             apikey = config['bot']['token']
             app_name = 'telegram_bot'
 
-            tl = TelegramMessagingService(
-                apikey=apikey,
-                app_name=app_name,
-                bot_id=telegram_bot_id(apikey),
-                db=self.db,
-                commands=commands,
-            )
-
             self.bot = TelegramBot(
                 internal_queue=self.internal_queue,
+                db=db,
+                storage=storage,
+                translator=translator,
                 apikey=apikey,
+                bot_id=telegram_bot_id(apikey),
                 app_name=app_name,
                 bot_language='en',
-                cache=self.cache,
+                cache=cache,
                 commands=commands,
-                handler_fn=lambda: CommandHandler(
-                    commands=commands,
-                    app_name=app_name,
-                    bot_id=telegram_bot_id(apikey),
-                    messaging_service=tl,
-                    internal_queue=self.internal_queue,
-                    db=self.db,
-                    storage=self.storage,
-                    error_handler=self.error_handler,
-                    metrics=self.metrics,
-                    translator=self.translator,
-                ),
+                metrics=metrics,
+                handler_fn=handler,
             )
         else:
             raise Exception('unsupported platform:', plat)
 
-    def run(self):
         self.bot.listen()
 
 
 if __name__ == '__main__':
-    app = App()
-    app.run()
+    App()

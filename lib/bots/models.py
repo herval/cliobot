@@ -158,7 +158,7 @@ class CachedContext(Context):
 
     def persist(self, db):
         if self.dirty:  # commit changes
-            db.set_chat_context(self.app_name, self.chat_id, self)
+            db.set_chat_context(self.app_name, self.chat_id, self.to_dict())
             self.dirty = False
 
     def set(self, key, value):
@@ -214,15 +214,36 @@ class MessagingService:
 
 class BaseBot:
     def __init__(self,
+                 db,
+                 storage,
                  internal_queue,
+                 bot_id,
                  handler_fn,
+                 apikey,
+                 app_name,
+                 bot_language,
+                 cache,
+                 commands,
+                 translator,
+                 metrics,
                  ):
         self.internal_queue = internal_queue
+        self.translator = translator
+        self.db = db
+        self.storage = storage
+        self.bot_id = bot_id
+        self.apikey = apikey
+        self.commands = commands
+        self.bot = None
+        self.app_name = app_name
+        self.bot_language = bot_language
+        self.cache = cache
+        self.metrics = metrics
 
         self.senders = [handler_fn() for _ in range(int(os.cpu_count()))]
 
         self.threads = [
-            threading.Thread(target=handler.listen, args=(), daemon=True) for handler in self.senders
+            threading.Thread(target=handler.listen, args=(self,), daemon=True) for handler in self.senders
         ]
 
     async def initialize(self):
