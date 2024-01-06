@@ -6,6 +6,7 @@ from pydantic import BaseModel, ValidationError
 
 class BasePromptModel(BaseModel):
     command: str
+    prompt: str
 
 
 def parse_message(message_text, context_dict, pydantic_type) -> BasePromptModel:

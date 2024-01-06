@@ -58,10 +58,6 @@ class CommandHandler:
         return None
 
     async def exec(self, command: BaseCommand, update: Message, context: CachedContext, bot):
-        bot.error_handler.set_context({
-            "id": context.user_id,
-        })
-
         try:
             parsed = await command.parse(update, context, bot.messaging_service)
             if parsed and await command.run(parsed, update, context, bot.messaging_service):

@@ -21,7 +21,7 @@ class Ask(BaseCommand):
 
     async def run(self, parsed, message, context, messaging_service):
         res = self.openai_client.ask(
-            message.text,
+            parsed.prompt
         )
         await messaging_service.send_message(
             text=res,
@@ -31,7 +31,6 @@ class Ask(BaseCommand):
 
 
 class Dalle3Prompt(BasePromptModel):
-    prompt: str = None
     size: str = Field(default='1024x1024',
                       examples=VALID_DALLE3_SIZES)
 
