@@ -54,7 +54,8 @@ class Dalle3(BaseCommand):
             chat_id=message.chat_id,
             media={
                 'image': abs_path('working.png'),
-            }
+            },
+            reply_to_message_id=message.message_id,
         )
 
         res = self.openai_client.dalle3_txt2img(

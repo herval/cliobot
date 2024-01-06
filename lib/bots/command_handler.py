@@ -59,8 +59,8 @@ class CommandHandler:
 
     async def exec(self, command: BaseCommand, update: Message, context: CachedContext, bot):
         try:
-            parsed = await command.parse(update, context, bot.messaging_service)
-            if parsed and await command.run(parsed, update, context, bot.messaging_service):
+            parsed = await command.parse(update, context, bot)
+            if parsed and await command.run(parsed, update, context, bot):
                 context.clear()
         except Exception as e:
             traceback.print_exc()

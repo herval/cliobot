@@ -78,12 +78,12 @@ class BaseCommand:
         self.reply_only = reply_only
         self.prompt_class = prompt_class
 
-    async def parse(self, message, context, messaging_service) -> Optional[BasePromptModel]:
+    async def parse(self, message, context, bot) -> Optional[BasePromptModel]:
         """Parse message + context, returns True if command is fully parsed (no optionals missing)"""
         try:
             return parse_message(message.text, context.to_dict(), self.prompt_class)
         except ValidationError as e:
-            await notify_errors(e, messaging_service, message.chat_id, message.message_id)
+            await notify_errors(e, bot.messaging_service, message.chat_id, message.message_id)
             return None
 
     async def run(self, parsed, message, context, bot) -> bool:
