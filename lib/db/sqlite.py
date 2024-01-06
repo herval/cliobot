@@ -1,3 +1,4 @@
+import json
 import sqlite3
 
 from lib.db import Database
@@ -48,22 +49,20 @@ class SqliteDb(Database):
         if res is None:
             return {}
         else:
-            return res[0]
-
+            return json.loads(res[0])
 
     def set_chat_context(self, app_name, chat_id, context):
         cur = self.conn.cursor()
         cur.execute(
             "UPDATE chat_sessions SET context = ? WHERE id = ? AND app = ?",
-            (context, chat_id, app_name)
+            (json.dumps(context), chat_id, app_name)
         )
         self.conn.commit()
-
-
 
     def _create_tables(self):
         with open(abs_path('schema.sql'), 'r') as f:
             self.conn.executescript(f.read())
+
 
 def dict_factory(cursor, row):
     fields = [column[0] for column in cursor.description]
