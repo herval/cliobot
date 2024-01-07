@@ -10,6 +10,7 @@ from lib.commands.context import ClearContext, PrintContext
 from lib.commands.help import Help
 from lib.errors import BaseErrorHandler
 from lib.metrics import BaseMetrics
+from lib.openai.commands import Transcribe
 from lib.translator import NullTranslator
 from lib.utils import abs_path
 
@@ -67,6 +68,7 @@ class App:
             commands.extend([
                 Ask(openai_client),
                 Dalle3(openai_client),
+                Transcribe(openai_client),
             ])
 
         self.internal_queue = queue.Queue()

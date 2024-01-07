@@ -142,6 +142,15 @@ class TelegramMessagingService(MessagingService):
 
     @convert_exceptions
     @retry(TimedOut, tries=2, delay=0.5)
+    async def get_file_info(self, file_id):
+        bot = await self.initialize()
+        info = await bot.get_file(file_id)
+        return {
+            'file_path': info.file_path,
+        }
+
+    @convert_exceptions
+    @retry(TimedOut, tries=2, delay=0.5)
     async def edit_message_media(self, message_id, chat_id, media, text=None, reply_buttons=None):
         bot = await self.initialize()
         await bot.edit_message_media(

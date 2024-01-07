@@ -1,12 +1,58 @@
+from pathlib import Path
+from typing import Union, Optional
+
 import openai
 from pydantic import Field
 
 from lib.commands import BaseCommand, BasePromptModel
+from lib.db.utils import upload_asset, cached_get_file
 from lib.openai.client import VALID_DALLE3_SIZES
-from lib.utils import abs_path, upload_asset
+from lib.utils import abs_path
 
 
 # A set of commands using OpenAI's APIs
+
+class TranscribePrompt(BasePromptModel):
+    audio: str
+    prompt: Optional[str] = Field(default=None)
+
+
+class Transcribe(BaseCommand):
+    def __init__(self, openai_client):
+        super().__init__(
+            command='transcribe',
+            name="transcribe",
+            description="Transcribe audio with an optional prompt",
+            examples=[
+                "/transcribe <optional prompt> --audio <audio file url>",
+            ],
+            prompt_class=TranscribePrompt
+        )
+        self.openai_client = openai_client
+
+    async def run(self, parsed, message, context, bot) -> bool:
+        audio = await cached_get_file(
+            file_id=parsed.audio,
+            context=context,
+            bot=bot,
+        )
+
+        msg = await bot.messaging_service.send_message(
+            text='Transcribing...',
+            chat_id=message.chat_id,
+            reply_to_message_id=message.message_id,
+        )
+
+        txt = self.openai_client.transcribe(audio)
+
+        await bot.messaging_service.edit_message(
+            chat_id=msg.chat_id,
+            message_id=msg.id,
+            text=txt,
+        )
+
+        return True
+
 
 class Ask(BaseCommand):
     def __init__(self, openai_client):
@@ -66,10 +112,11 @@ class Dalle3(BaseCommand):
                 size=parsed.size,
             )
             upload_asset(
-                bot.db,
-                bot.storage,
-                context.chat_id,
-                res[0].url
+                context=context,
+                local_path=res[0].url,
+                db=bot.db,
+                storage=bot.storage,
+                folder='outputs',
             )
 
             await bot.messaging_service.edit_message_media(

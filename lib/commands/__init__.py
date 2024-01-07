@@ -9,9 +9,22 @@ class BasePromptModel(BaseModel):
     prompt: str
 
 
-def parse_message(message_text, context_dict, pydantic_type) -> BasePromptModel:
+def parse_message(message, context, pydantic_type) -> BasePromptModel:
     # Split the input string into tokens
-    tokens = message_text.split()
+    tokens = message.text.split()
+
+    if message.audio:
+        context.set('audio', message.audio)
+
+    if message.voice:
+        context.set('voice', message.voice)
+
+    if message.video:
+        context.set('video', message.video)
+
+    if message.image:
+        context.set('image', message.image)
+
 
     command = None
     if len(tokens) > 0:
@@ -33,7 +46,7 @@ def parse_message(message_text, context_dict, pydantic_type) -> BasePromptModel:
         'prompt': prompt
     }
 
-    for k, v in context_dict.items():
+    for k, v in context.to_dict().items():
         params[k] = v
 
     # Iterate through the tokens to find key-value pairs (e.g., --bla abc)
@@ -81,7 +94,7 @@ class BaseCommand:
     async def parse(self, message, context, bot) -> Optional[BasePromptModel]:
         """Parse message + context, returns True if command is fully parsed (no optionals missing)"""
         try:
-            return parse_message(message.text, context.to_dict(), self.prompt_class)
+            return parse_message(message, context, self.prompt_class)
         except ValidationError as e:
             await notify_errors(e, bot.messaging_service, message.chat_id, message.message_id)
             return None

@@ -1,5 +1,5 @@
 httpcore
-python-telegram-bot==20.4
+python-telegram-bot==20.7
 aiohttp
 aiodns
 python-i18n[YAML]

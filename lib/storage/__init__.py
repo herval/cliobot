@@ -1,4 +1,5 @@
 import os
+from typing import Optional
 
 
 class LocalStorage:
@@ -26,7 +27,7 @@ class LocalStorage:
     def exists(self, path):
         return os.path.exists(os.path.join(self.folder, path))
 
-    def get_data(self, path):
+    def get_data(self, path) -> Optional[bytes]:
         with open(os.path.join(self.folder, path), 'rb') as f:
             return f.read()
 

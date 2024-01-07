@@ -193,6 +193,10 @@ class MessagingService:
     def supports_editing_media(self):
         return True  # true by default
 
+
+    async def get_file_info(self, file_id):
+        raise NotImplementedError()
+
     async def edit_message_media(self, message_id, chat_id, media, text=None, reply_buttons=None):
         raise NotImplementedError()
 
