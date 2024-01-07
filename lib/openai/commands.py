@@ -3,7 +3,7 @@ from pydantic import Field
 
 from lib.commands import BaseCommand, BasePromptModel
 from lib.openai.client import VALID_DALLE3_SIZES
-from lib.utils import abs_path
+from lib.utils import abs_path, upload_asset
 
 
 # A set of commands using OpenAI's APIs
@@ -65,6 +65,12 @@ class Dalle3(BaseCommand):
                 num=1,
                 size=parsed.size,
             )
+            upload_asset(
+                bot.db,
+                bot.storage,
+                context.chat_id,
+                res[0].url
+            )
 
             await bot.messaging_service.edit_message_media(
                 chat_id=msg.chat_id,
@@ -72,17 +78,16 @@ class Dalle3(BaseCommand):
                 media={
                     'image': res[0].url
                 },
-            )
-            await bot.messaging_service.edit_message(
-                chat_id=msg.chat_id,
-                message_id=msg.id,
                 text=res[0].revised_prompt,
             )
         except openai.BadRequestError as e:
-            await bot.messaging_service.edit_message(
+            await bot.messaging_service.edit_message_media(
                 chat_id=msg.chat_id,
                 message_id=msg.id,
-                text=e.message,
+                text=f"🚨 {e.message}",
+                media={
+                    'image': abs_path('working.png'),
+                },
             )
 
         return True

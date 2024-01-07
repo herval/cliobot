@@ -193,6 +193,7 @@ def message_from_telegram(message, user, chat, context, callback_query) -> Messa
 
 threadlocal_bot = contextvars.ContextVar("bot_instance", default=None)
 
+
 class TelegramMessagingService(MessagingService):
     def __init__(self, apikey, app_name, bot_id, commands, db):
         self.apikey = apikey
@@ -207,7 +208,7 @@ class TelegramMessagingService(MessagingService):
 
         if not threadlocal_bot.get()._initialized:
             await threadlocal_bot.get().initialize()
-        
+
         return threadlocal_bot.get()
 
     @convert_exceptions
@@ -221,14 +222,21 @@ class TelegramMessagingService(MessagingService):
 
     @convert_exceptions
     @retry(TimedOut, tries=2, delay=0.5)
-    async def edit_message_media(self, message_id, chat_id, media, reply_buttons=None):
+    async def edit_message_media(self, message_id, chat_id, media, text=None, reply_buttons=None):
         bot = await self.initialize()
-        return await bot.edit_message_media(
+        await bot.edit_message_media(
             chat_id=chat_id,
             message_id=message_id,
             media=convert_media(media),
             reply_markup=reply_markup(reply_buttons)
         )
+
+        if text:
+            await bot.edit_message_caption(
+                chat_id=chat_id,
+                message_id=message_id,
+                caption=text,
+            )
 
     @convert_exceptions
     @retry(TimedOut, tries=2, delay=0.5)

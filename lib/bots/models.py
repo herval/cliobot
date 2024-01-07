@@ -194,7 +194,7 @@ class MessagingService:
     def supports_editing_media(self):
         return True  # true by default
 
-    async def edit_message_media(self, message_id, chat_id, media, reply_buttons=None):
+    async def edit_message_media(self, message_id, chat_id, media, text=None, reply_buttons=None):
         raise NotImplementedError()
 
     async def edit_message(self, message_id, chat_id, text, context=None, reply_buttons=None):

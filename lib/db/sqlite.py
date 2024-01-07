@@ -59,6 +59,15 @@ class SqliteDb(Database):
         )
         self.conn.commit()
 
+    def save_asset(self, chat_id, filename):
+        cur = self.conn.cursor()
+        cur.execute(
+            "INSERT INTO assets(chat_session_id, filename) VALUES (?, ?)",
+            (chat_id, filename)
+        )
+        self.conn.commit()
+        return cur.lastrowid
+
     def _create_tables(self):
         with open(abs_path('schema.sql'), 'r') as f:
             self.conn.executescript(f.read())

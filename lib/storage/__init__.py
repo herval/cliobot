@@ -5,6 +5,7 @@ class LocalStorage:
     '''save image to local storage'''
 
     def __init__(self, folder="./"):
+        print(f"**** Local Storage at: {folder} ****")
         self.folder = folder
         os.makedirs(folder, exist_ok=True)
 

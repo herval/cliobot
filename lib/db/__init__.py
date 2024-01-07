@@ -14,6 +14,9 @@ class Database:
                      is_forward=False, context=None):
         raise NotImplementedError()
 
+    def save_asset(self, chat_id, filename):
+        raise NotImplementedError()
+
 
 class InMemoryDb(Database):
     def __init__(self):
