@@ -68,40 +68,40 @@ class CommandHandler:
         finally:
             context.persist(bot.db)
 
-    async def message_handler(self, update: Message, context: CachedContext, bot):
-        print('on_message', update.__str__(), context.__str__())
+    async def message_handler(self, message: Message, context: CachedContext, bot):
+        print('on_message', message.__str__(), context.__str__())
         bot.metrics.error_handler.set_context({
             "id": context.user_id,
         })
 
         try:
             bot.db.save_message(
-                chat_user_id=update.chat_user_id,
-                chat_id=update.chat_id,
-                text=update.text or '',
+                user_id=message.user_id,
+                chat_id=message.chat_id,
+                text=message.text or '',
                 app=bot.app_name,
-                external_id=update.message_id,
-                image=update.image,
-                video=update.video,
-                audio=update.audio,
-                voice=update.voice,
-                is_forward=update.is_forward,
+                external_id=message.message_id,
+                image=message.image,
+                video=message.video,
+                audio=message.audio,
+                voice=message.voice,
+                is_forward=message.is_forward,
             )
         except Exception as e:
             bot.metrics.capture_exception(e, bot.app_name, context.user_id)
 
         if context.user_id is None:
-            session = bot.db.create_or_get_chat_session(update.chat_user_id, app=bot.app_name)
-            context.chat_id = update.chat_id
-            context.user_id = session.get('chat_user_id', None)
+            session = bot.db.create_or_get_chat_session(message.user_id, app=bot.app_name)
+            context.chat_id = message.chat_id
+            context.user_id = session.get('external_user_id', None)
 
-        if update.reply_to_message_id and not update.reply_to_message:
+        if message.reply_to_message_id and not message.reply_to_message:
             print("Loading reply...")
-            update.reply_to_message = await bot.messaging_service.get_message(update.reply_to_message_id)
+            message.reply_to_message = await bot.messaging_service.get_message(message.reply_to_message_id)
 
-        update.translate(bot.translator)
+        message.translate(bot.translator)
 
-        inf = self.infer_command(update, context)
+        inf = self.infer_command(message, context)
         if inf is not None:  # handle as a command input
             bot.metrics.send_event(
                 event="user_command",
@@ -109,20 +109,20 @@ class CommandHandler:
                 user_id=context.user_id,
                 params={
                     'command': inf.command,
-                    'chat_id': update.chat_id,
+                    'chat_id': message.chat_id,
                 }
             )
-            await self.exec(inf, update, context, bot)  # command handled, all good
+            await self.exec(inf, message, context, bot)  # command handled, all good
         else:
             bot.metrics.send_event(
                 event="user_message",
                 app_name=bot.app_name,
                 user_id=context.user_id,
                 params={
-                    'chat_id': update.chat_id,
+                    'chat_id': message.chat_id,
                 }
             )
-            await self.fallback_command.run(None, update, context, bot)
+            await self.fallback_command.run(None, message, context, bot)
 
     async def poll(self, bot):
         while self.running:

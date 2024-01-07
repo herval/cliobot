@@ -1,5 +1,6 @@
 import json
 import sqlite3
+from typing import Optional
 
 from lib.db import Database
 from lib.utils import abs_path
@@ -12,30 +13,30 @@ class SqliteDb(Database):
         self.conn.row_factory = dict_factory
         self._create_tables()
 
-    def create_or_get_chat_session(self, chat_user_id, app):
+    def create_or_get_chat_session(self, external_user_id, app):
         cur = self.conn.cursor()
         cur.execute(
-            "SELECT * FROM chat_sessions WHERE chat_user_id = ? AND app = ?",
-            (chat_user_id, app)
+            "SELECT * FROM chat_sessions WHERE external_user_id = ? AND app = ?",
+            (external_user_id, app)
         )
         res = cur.fetchone()
         if res is None:
             cur.execute(
-                "INSERT INTO chat_sessions (chat_user_id, app) VALUES (?, ?)",
-                (chat_user_id, app)
+                "INSERT INTO chat_sessions (external_user_id, app) VALUES (?, ?)",
+                (external_user_id, app)
             )
             self.conn.commit()
-            return self.create_or_get_chat_session(chat_user_id, app)
+            return self.create_or_get_chat_session(external_user_id, app)
         else:
             return res
 
-    def save_message(self, chat_user_id, chat_id, text, app, external_id,
+    def save_message(self, user_id, chat_id, text, app, external_id,
                      image=None, audio=None, voice=None, video=None,
                      is_forward=False, context=None):
         cur = self.conn.cursor()
         cur.execute(
-            "INSERT INTO chat_messages(external_id, external_user_id, external_chat_id, text, app, image, audio, voice, video, is_forward) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-            (external_id, chat_user_id, chat_id, text, app, image, audio, voice, video, is_forward)
+            "INSERT INTO chat_messages(external_id, external_user_id, external_chat_id, text, app, external_image_id, external_audio_id, external_voice_id, external_video_id, is_forward) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            (external_id, user_id, chat_id, text, app, image, audio, voice, video, is_forward)
         )
         self.conn.commit()
 
@@ -59,14 +60,28 @@ class SqliteDb(Database):
         )
         self.conn.commit()
 
-    def save_asset(self, chat_id, filename):
+    def get_asset(self, external_id, user_id, chat_id) -> Optional[dict]:
         cur = self.conn.cursor()
         cur.execute(
-            "INSERT INTO assets(chat_session_id, filename) VALUES (?, ?)",
-            (chat_id, filename)
+            "SELECT * FROM assets WHERE external_id = ? AND external_user_id = ? AND external_chat_id = ?",
+            (external_id, user_id, chat_id)
+        )
+        res = cur.fetchone()
+        if res is None:
+            return None
+
+        return res[0]
+
+
+    def save_asset(self, external_id, user_id, chat_id, storage_path) -> (dict, bool):
+        cur = self.conn.cursor()
+        cur.execute(
+            "INSERT INTO assets(external_id, external_user_id, external_chat_id, storage_path) VALUES (?, ?, ?, ?)",
+            (external_id, user_id, chat_id, storage_path)
         )
         self.conn.commit()
-        return cur.lastrowid
+        return self.get_asset(external_id, user_id, chat_id)
+
 
     def _create_tables(self):
         with open(abs_path('schema.sql'), 'r') as f:

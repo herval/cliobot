@@ -111,86 +111,6 @@ def parse_callback_string(callback_data):
     return {}
 
 
-def message_from_telegram(message, user, chat, context, callback_query) -> Message:
-    meta = {}
-
-    # text
-    if message is not None:
-        txt = message.text or message.caption
-    else:
-        txt = None
-    if callback_query is not None:
-        txt = callback_query.data
-        meta = parse_callback_string(txt)
-    if context.args is not None and len(context.args) > 0:
-        txt = ' '.join(context.args)
-
-    audio = None
-    image = None
-    reply = None
-    voice = None
-    video = None
-    if message.reply_to_message is not None:
-        m = message.reply_to_message
-        reply = message_from_telegram(
-            message=m,
-            user=m.from_user,
-            chat=m.chat,
-            context=context,
-            callback_query=None)
-
-        # if command is in reply to a photo, use that photo
-        if message.reply_to_message.photo is not None and len(
-                message.reply_to_message.photo) > 0:  # a photo
-            image = message.reply_to_message.photo[-1].file_id
-        elif message.reply_to_message.document is not None and message.reply_to_message.document.mime_type.startswith(
-                'image'):
-            image = message.reply_to_message.document.file_id  # a document
-
-        if message.reply_to_message.audio is not None:
-            audio = message.reply_to_message.audio.file_id
-
-        if message.reply_to_message.video is not None:
-            video = message.reply_to_message.video.file_id
-    elif message.photo is not None and len(
-            message.photo) > 0:  # uploaded a new image
-        image = message.photo[-1].file_id
-    elif message.document is not None and message.document.mime_type.startswith(
-            'image'):
-        image = message.document.file_id
-
-    if message.audio is not None:
-        audio = message.audio.file_id
-
-    if message.video is not None:
-        video = message.video.file_id
-
-    if message.voice is not None:
-        voice = message.voice.file_id
-
-    phone = message.contact.phone_number if message.contact and message.contact.user_id == user.id else None
-    return Message(
-        user=User(
-            username=user.username,
-            phone=phone,
-            full_name=f'{user.first_name} {user.last_name}' if user.first_name and user.last_name else None,
-            language=user.language_code,
-        ),
-        message_id=message.id,
-        chat_user_id=user.id,
-        chat_id=chat.id,
-        reply_to_message_id=message.reply_to_message.id if message.reply_to_message is not None else None,
-        reply_to_message=reply,
-        text=txt or '',
-        image=image,
-        audio=audio,
-        voice=voice,
-        video=video,
-        metadata=meta,
-        is_forward=message.forward_from is not None,
-    )
-
-
 threadlocal_bot = contextvars.ContextVar("bot_instance", default=None)
 
 
@@ -268,14 +188,12 @@ class TelegramMessagingService(MessagingService):
         )
 
         self.db.save_message(
-            chat_user_id=self.bot_id,
+            user_id=self.bot_id,
             chat_id=chat_id,
             text=text or '',
             app=self.app_name,
             external_id=res.id,
-            image=media['image'],
-            audio=None,
-            voice=None,
+            image=res.photo[-1].file_id,
             is_forward=False,
         )
 
@@ -309,14 +227,11 @@ class TelegramMessagingService(MessagingService):
         )
 
         self.db.save_message(
-            chat_user_id=self.bot_id,
+            user_id=self.bot_id,
             chat_id=chat_id,
             text=text or '',
             app=self.app_name,
             external_id=res.id,
-            image=None,
-            audio=None,
-            voice=None,
             is_forward=False,
         )
 
@@ -410,7 +325,7 @@ class TelegramBot(BaseBot):
     def handler_adapter(self, command):
         async def wrapper(update, context):
             print(update, context)
-            msg = message_from_telegram(
+            msg = await self._parse_message(
                 message=update.effective_message,
                 user=update.effective_user,
                 chat=update.effective_chat,
@@ -451,3 +366,83 @@ class TelegramBot(BaseBot):
 
     def start(self):
         self.app.run_polling()
+
+    async def _parse_message(self, message, user, chat, context, callback_query) -> Message:
+        meta = {}
+
+        # text
+        if message is not None:
+            txt = message.text or message.caption
+        else:
+            txt = None
+        if callback_query is not None:
+            txt = callback_query.data
+            meta = parse_callback_string(txt)
+        if context.args is not None and len(context.args) > 0:
+            txt = ' '.join(context.args)
+
+        audio = None
+        image = None
+        reply = None
+        voice = None
+        video = None
+        if message.reply_to_message is not None:
+            m = message.reply_to_message
+            reply = await self._parse_message(
+                message=m,
+                user=m.from_user,
+                chat=m.chat,
+                context=context,
+                callback_query=None)
+
+            # if command is in reply to a photo, use that photo
+            if message.reply_to_message.photo is not None and len(
+                    message.reply_to_message.photo) > 0:  # a photo
+                image = message.reply_to_message.photo[-1].file_id
+            elif message.reply_to_message.document is not None and message.reply_to_message.document.mime_type.startswith(
+                    'image'):
+                image = message.reply_to_message.document.file_id  # a document
+
+            if message.reply_to_message.audio is not None:
+                audio = message.reply_to_message.audio.file_id
+
+            if message.reply_to_message.video is not None:
+                video = message.reply_to_message.video.file_id
+        elif message.photo is not None and len(
+                message.photo) > 0:  # uploaded a new image
+            image = message.photo[-1].file_id
+        elif message.document is not None and message.document.mime_type.startswith(
+                'image'):
+            image = message.document.file_id
+
+        if message.audio is not None:
+            audio = message.audio.file_id
+
+        if message.video is not None:
+            video = message.video.file_id
+
+        if message.voice is not None:
+            voice = message.voice.file_id
+
+        phone = message.contact.phone_number if message.contact and message.contact.user_id == user.id else None
+        return Message(
+            user=User(
+                username=user.username,
+                phone=phone,
+                full_name=f'{user.first_name} {user.last_name}' if user.first_name and user.last_name else None,
+                language=user.language_code,
+            ),
+            message_id=message.id,
+            user_id=user.id,
+            chat_id=chat.id,
+            reply_to_message_id=message.reply_to_message.id if message.reply_to_message is not None else None,
+            reply_to_message=reply,
+            text=txt or '',
+            image=image,
+            audio=audio,
+            voice=voice,
+            video=video,
+            metadata=meta,
+            is_forward=message.forward_from is not None,
+        )
+

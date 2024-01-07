@@ -1,13 +1,12 @@
 import asyncio
 import os
-import queue
 import threading
 
 
 class Message:
     def __init__(self,
                  message_id,
-                 chat_user_id,
+                 user_id,
                  chat_id,
                  user,
                  reply_to_message=None,
@@ -27,7 +26,7 @@ class Message:
         self.user = user
         self.bot_id = bot_id
         self.message_id = message_id
-        self.chat_user_id = chat_user_id
+        self.user_id = user_id
         self.chat_id = chat_id
         self.reply_to_message_id = reply_to_message_id
         self.text = text
@@ -50,7 +49,7 @@ class Message:
         return self.text
 
     def __str__(self):
-        return f"Message({self.message_id}, {self.chat_id}, {self.chat_user_id}, {self.text})"
+        return f"Message({self.message_id}, {self.chat_id}, {self.user_id}, {self.text})"
 
     def __repr__(self):
         return self.__str__()

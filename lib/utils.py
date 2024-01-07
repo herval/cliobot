@@ -1,37 +1,15 @@
 import base64
-import mimetypes
+import hashlib
 import os
-import uuid
 from io import BytesIO
 
 import requests
 
 
-def asset_filename(user_id, filename):
-    return f"assets/{user_id}/{filename}"
-
-
-def upload_asset(db, storage, chat_id, filepath):
-    if filepath.startswith('http'):
-        data = requests.get(filepath).content
-    else:
-        with open(filepath, 'rb') as f:
-            data = f.read()
-
-    origfilename = filepath.split('/')[-1]
-    ext = origfilename.split('.')[-1]
-    if '?' in ext:
-        ext = ext.split('?')[0]
-
-    filename = uuid.uuid4().hex + '.' + ext
-    asset = db.save_asset(chat_id, filename)
-
-    storage.save_data(
-        data,
-        asset_filename(chat_id, filename),
-        mimetype=mimetypes.guess_type(origfilename)[0],
-    )
-    return asset
+def md5_hash(txt):
+    md5 = hashlib.md5()
+    md5.update(txt.encode())
+    return md5.hexdigest()
 
 
 def abs_path(path):
