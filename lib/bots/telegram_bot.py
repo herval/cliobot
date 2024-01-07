@@ -1,3 +1,5 @@
+import contextvars
+
 import httpcore
 from retry import retry
 from telegram import BotCommand, InputMediaPhoto, InputMediaDocument, InlineKeyboardButton, InlineKeyboardMarkup, \
@@ -189,24 +191,30 @@ def message_from_telegram(message, user, chat, context, callback_query) -> Messa
     )
 
 
+threadlocal_bot = contextvars.ContextVar("bot_instance", default=None)
+
 class TelegramMessagingService(MessagingService):
     def __init__(self, apikey, app_name, bot_id, commands, db):
         self.apikey = apikey
         self.app_name = app_name
         self.bot_id = bot_id
         self.db = db
-        self.bot = Bot(apikey)
         self.commands = commands
 
-    async def initialize(self):
-        if not self.bot._initialized:
-            await self.bot.initialize()
+    async def initialize(self) -> Bot:
+        if not threadlocal_bot.get():
+            threadlocal_bot.set(Bot(self.apikey))
+
+        if not threadlocal_bot.get()._initialized:
+            await threadlocal_bot.get().initialize()
+        
+        return threadlocal_bot.get()
 
     @convert_exceptions
     @retry(TimedOut, tries=2, delay=0.5)
     async def get_file(self, file_id):
-        await self.initialize()
-        file = await self.bot.get_file(file_id)
+        bot = await self.initialize()
+        file = await bot.get_file(file_id)
         bytesdata = await file.download_as_bytearray()
 
         return file.file_path, bytesdata
@@ -214,8 +222,8 @@ class TelegramMessagingService(MessagingService):
     @convert_exceptions
     @retry(TimedOut, tries=2, delay=0.5)
     async def edit_message_media(self, message_id, chat_id, media, reply_buttons=None):
-        await self.initialize()
-        return await self.bot.edit_message_media(
+        bot = await self.initialize()
+        return await bot.edit_message_media(
             chat_id=chat_id,
             message_id=message_id,
             media=convert_media(media),
@@ -225,8 +233,8 @@ class TelegramMessagingService(MessagingService):
     @convert_exceptions
     @retry(TimedOut, tries=2, delay=0.5)
     async def edit_message(self, message_id, chat_id, text, context=None, reply_buttons=None):
-        await self.initialize()
-        return await self.bot.edit_message_text(
+        bot = await self.initialize()
+        return await bot.edit_message_text(
             chat_id=chat_id,
             message_id=message_id,
             text=text or '',
@@ -236,14 +244,14 @@ class TelegramMessagingService(MessagingService):
     @retry(TimedOut, tries=2, delay=0.5)
     async def send_media(self, chat_id, media, reply_to_message_id=None, context=None, text=None, reply_buttons=None,
                          buttons=None):
-        await self.initialize()
+        bot = await self.initialize()
 
         if buttons:
             for b in buttons:
                 if b['kind'] == 'url':
                     text += f"\n\n{b['text']}: {b['url']}"
 
-        res = await self.bot.send_photo(
+        res = await bot.send_photo(
             chat_id=chat_id,
             photo=media['image'],
             caption=text,
@@ -268,8 +276,8 @@ class TelegramMessagingService(MessagingService):
     @convert_exceptions
     @retry(TimedOut, tries=2, delay=0.5)
     async def delete_message(self, message_id, chat_id):
-        await self.initialize()
-        return await self.bot.delete_message(
+        bot = await self.initialize()
+        return await bot.delete_message(
             chat_id=int(chat_id),
             message_id=int(message_id),
         )
@@ -278,14 +286,14 @@ class TelegramMessagingService(MessagingService):
     @retry((TimedOut, TransientFailure), tries=2, delay=0.5)
     async def send_message(self, text, chat_id, context=None, reply_to_message_id=None, reply_buttons=None,
                            buttons=None):
-        await self.initialize()
+        bot = await self.initialize()
 
         if buttons:
             for b in flatten(buttons):
                 if b['kind'] == 'url':
                     text += f"\n\n{b['text']}: {b['url']}"
 
-        res = await self.bot.send_message(
+        res = await bot.send_message(
             chat_id=chat_id,
             text=text or '',
             reply_to_message_id=reply_to_message_id,
