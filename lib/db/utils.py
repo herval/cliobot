@@ -75,8 +75,8 @@ def upload_asset(
         mimetype=mimetypes.guess_type(local_path)[0],
     )
     return db.save_asset(
-        file_id or md5_hash(local_path),
-        context.user_id,
-        context.chat_id,
-        storage_path,
+        external_id=file_id or md5_hash(local_path),
+        user_id=context.user_id,
+        chat_id=context.chat_id,
+        storage_path=storage_path,
     )

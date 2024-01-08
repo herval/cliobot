@@ -28,6 +28,31 @@ browsing the web).
 Notice both modes use the same command definitions, so the only difference between them is a tradeoff between more
 natural language interpretation versus cost (since running GPT4 & other models can get expensive quickly).
 
+## Built-in commands
+
+Cliobot comes with a set of built-in commands that you can use out of the box. You can also easily add your own commands!
+
+### /image
+
+Generates an image from a text prompt.
+Current implementation uses DALL-E 3.
+
+### /describe
+
+Describe an image using text.
+Current implementation uses GPT4V.
+
+### /transcribe
+
+Transcribes an audio file into text.
+Current implementation uses Whisper-1
+
+### /ask
+
+Ask a question to an AI agent.
+Current implementation uses GPT-4 by default
+
+
 ## Command syntax
 
 Cliobot uses a simple prompt parsing system (common across apps such as Midjourney & others). It's based on the

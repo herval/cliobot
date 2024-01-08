@@ -6,18 +6,15 @@ import yaml
 import i18n
 from lib.bots.command_handler import CommandHandler
 from lib.cache import InMemoryCache
+from lib.commands.audio import Transcribe
 from lib.commands.context import ClearContext, PrintContext
 from lib.commands.help import Help
+from lib.commands.images import TextToImage, DescribeImage
+from lib.commands.text import Ask
 from lib.errors import BaseErrorHandler
 from lib.metrics import BaseMetrics
-from lib.openai.commands import Transcribe
 from lib.translator import NullTranslator
 from lib.utils import abs_path
-
-BASE_COMMANDS = [
-    ClearContext,
-    PrintContext,
-]
 
 
 class App:
@@ -54,22 +51,47 @@ class App:
         error_handler = BaseErrorHandler()
         metrics = BaseMetrics(error_handler)
 
-        commands = [k() for k in BASE_COMMANDS]
+        commands = [
+            ClearContext(),
+            PrintContext(),
+            # TextToImage,
+            # DescribeImage,
+            # Ask,
+            # Transcribe,
+        ]
+
+        txt2img_models = {}
+        transcribe_models = {}
+        describe_models = {}
+        ask_models = {}
+
+        models = {}
 
         if config.get('openai', None):
             from lib.openai.client import OpenAIClient
-            from lib.openai.commands import Dalle3, Ask
+            from lib.openai.models import GPTPrompt, Whisper1, Dalle3
 
             openai_client = OpenAIClient(
                 endpoints=config['openai']['endpoints'],
                 metrics=metrics,
             )
 
-            commands.extend([
-                Ask(openai_client),
-                Dalle3(openai_client),
-                Transcribe(openai_client),
-            ])
+            txt2img_models['dalle3'] = Dalle3(openai_client)
+            transcribe_models['whisper1'] = Whisper1(openai_client)
+            ask_models['gpt4'] = GPTPrompt(openai_client)
+
+        if len(txt2img_models) > 0:
+            commands.append(TextToImage(txt2img_models))
+
+        if len(transcribe_models) > 0:
+            commands.append(Transcribe(transcribe_models))
+
+        if len(describe_models) > 0:
+            commands.append(DescribeImage(describe_models))
+
+        if len(ask_models) > 0:
+            commands.append(Ask(ask_models))
+
 
         self.internal_queue = queue.Queue()
 

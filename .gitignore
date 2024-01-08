@@ -7,3 +7,4 @@ config.yml
 /config.test_openai.yml
 /clibot.db
 /tmp
+cache/

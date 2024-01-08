@@ -18,6 +18,8 @@ class LocalStorage:
         with open(os.path.join(self.folder, path), 'wb') as f:
             f.write(data)
 
+        return path
+
     def full_path(self, path):
         return os.path.join(self.base_path(), path)
 

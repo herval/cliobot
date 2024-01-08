@@ -1,15 +1,37 @@
-import shlex
-from typing import Optional
+from typing import List
 
 from pydantic import BaseModel, ValidationError
 
 
-class BasePromptModel(BaseModel):
+class BasePrompt(BaseModel):
     command: str
     prompt: str
+    model: str = None
 
 
-def parse_message(message, context, pydantic_type) -> BasePromptModel:
+async def send_error_message_image(messaging_service, text, message):
+    try:
+        await messaging_service.delete_message(
+            chat_id=message.chat_id,
+            message_id=message.message_id,
+        )
+    except Exception as e:
+        print(e)
+
+    await messaging_service.send_message(
+        chat_id=message.chat_id,
+        text=f"🚨 {text}",
+    )
+
+
+async def send_error_message(messaging_service, text, chat_id):
+    await messaging_service.send_message(
+        chat_id=chat_id,
+        text=f"🚨 {text}",
+    )
+
+
+def to_params(message, context) -> dict:
     # Split the input string into tokens
     tokens = message.text.split()
 
@@ -24,7 +46,6 @@ def parse_message(message, context, pydantic_type) -> BasePromptModel:
 
     if message.image:
         context.set('image', message.image)
-
 
     command = None
     if len(tokens) > 0:
@@ -65,7 +86,7 @@ def parse_message(message, context, pydantic_type) -> BasePromptModel:
 
             params[key] = value
 
-    return pydantic_type(**params)
+    return params
 
 
 async def notify_errors(exc, messaging_service, chat_id, reply_to_message_id=None):
@@ -83,33 +104,76 @@ async def notify_errors(exc, messaging_service, chat_id, reply_to_message_id=Non
 
 
 class BaseCommand:
-    def __init__(self, command, name, description, examples, prompt_class=BasePromptModel, reply_only=False):
+    def __init__(self, command, name, description, examples, reply_only=False):
         self.command = command
         self.name = name
         self.description = description
         self.examples = examples
         self.reply_only = reply_only
+
+    async def process(self, message, context, bot) -> bool:
+        """
+        parses message and returns the right model to handle it, or None if the message is not a valid command
+        """
+        raise NotImplementedError()
+
+
+class ImageUrl(BaseModel):
+    url: str
+    prompt: str = None
+
+
+class GenerationResults(BaseModel):
+    texts: List[str] = None
+    images: List[ImageUrl] = None
+
+
+class Model:
+    """
+    A model is a class that contains a prompt class and a generate function that takes a prompt and returns a result
+    """
+
+    def __init__(self, prompt_class):
         self.prompt_class = prompt_class
 
-    async def parse(self, message, context, bot) -> Optional[BasePromptModel]:
-        """Parse message + context, returns True if command is fully parsed (no optionals missing)"""
-        try:
-            return parse_message(message, context, self.prompt_class)
-        except ValidationError as e:
-            await notify_errors(e, bot.messaging_service, message.chat_id, message.message_id)
-            return None
+    async def generate(self, parsed) -> GenerationResults:
+        raise NotImplementedError()
 
-    async def run(self, parsed, message, context, bot) -> bool:
+
+class ModelBackedCommand(BaseCommand):
+    def __init__(self, command, name, description, examples, models, reply_only=False):
+        super().__init__(command, name, description, examples, reply_only)
+        self.models = models
+
+    async def run(self, parsed, model, message, context, bot) -> bool:
         """
         execute the command and return True if the command was completely handled, or False if the command was either
         not handled or needs more data (eg. a file upload is pending).
 
         After a command is handled, the current context is cleared.
-
-        :param parsed:
-        :param message:
-        :param context:
-        :param bot: bot instance
-        :return:
         """
         raise NotImplementedError()
+
+    async def process(self, message, context, bot) -> bool:
+        """
+        parses message and returns the right model to handle it, or None if the message is not a valid command
+        """
+
+        params = to_params(message, context)
+        if params.get('model', None) is None:
+            model = next(iter(self.models.values()))
+        else:
+            model = self.models.get(params['model'], None)
+            if model is None:
+                await send_error_message(bot.messaging_service,
+                                         f"Model {params['model']} not found",
+                                         message.chat_id)
+                return False
+
+        try:
+            parsed = model.prompt_class(**params)
+        except ValidationError as e:
+            await notify_errors(e, bot.messaging_service, message.chat_id, message.message_id)
+            return False
+
+        return await self.run(parsed, model, message, context, bot)

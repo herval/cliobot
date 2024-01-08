@@ -1,6 +1,5 @@
 from i18n import t
 
-from lib.bots.models import Message, Context
 from lib.commands import BaseCommand
 from lib.utils import locale
 
@@ -18,7 +17,7 @@ class ClearContext(BaseCommand):
             ],
         )
 
-    async def run(self, parsed, message: Message, context: Context, bot):
+    async def process(self, message, context, bot):
         context.clear()
         return await bot.messaging_service.send_message(
             text=t('result.clear_context', locale=locale(context)),
@@ -37,7 +36,7 @@ class PrintContext(BaseCommand):
             ],
         )
 
-    async def run(self, parsed, message: Message, context: Context, bot):
+    async def process(self, message, context, bot):
         ctx = '\n'.join([f'{k}: {v}' for k, v in context.context.items() if v is not None])
 
         return await bot.messaging_service.send_message(

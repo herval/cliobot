@@ -3,11 +3,8 @@ import traceback
 from sys import exc_info
 from typing import Optional
 
-from i18n import t
-
-from lib.bots.models import Message, CachedContext
-from lib.commands import BaseCommand
-from lib.utils import get_or_default, locale
+from lib.bots import Message, CachedContext
+from lib.commands import BaseCommand, to_params
 
 
 def app_name(bot_name):
@@ -59,8 +56,7 @@ class CommandHandler:
 
     async def exec(self, command: BaseCommand, update: Message, context: CachedContext, bot):
         try:
-            parsed = await command.parse(update, context, bot)
-            if parsed and await command.run(parsed, update, context, bot):
+            if await command.process(update, context, bot):
                 context.clear()
         except Exception as e:
             traceback.print_exc()
@@ -122,7 +118,7 @@ class CommandHandler:
                     'chat_id': message.chat_id,
                 }
             )
-            await self.fallback_command.run(None, message, context, bot)
+            await self.fallback_command.process(message, context, bot)
 
     async def poll(self, bot):
         while self.running:

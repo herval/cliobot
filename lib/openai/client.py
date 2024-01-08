@@ -44,7 +44,7 @@ class OpenAIClient:
         if isinstance(audio_file, str):
             audio_file = Path(audio_file)
 
-        client, model = self._audio_client()
+        client, model = self._get_client('whisper-1')
         res = client.audio.transcriptions.create(
             file=audio_file,
             model=model,
@@ -53,7 +53,7 @@ class OpenAIClient:
         return res.text
 
     def dalle3_txt2img(self, prompt, num, size):
-        client, model = self._dalle_client()
+        client, model = self._get_client('dall-e-3')
         res = client.images.generate(
             model=model,
             n=1,
@@ -63,9 +63,8 @@ class OpenAIClient:
         )
         return res.data
 
-
-    def ask(self, prompt):
-        client, model = self._llm_client()
+    def ask(self, prompt, model_version='gpt-4'):
+        client, model = self._get_client(model_version)
         res = client.chat.completions.create(
             model=model,
             messages=[
@@ -77,27 +76,10 @@ class OpenAIClient:
         )
         return res.choices[0].message.content
 
-
-    def _audio_client(self):
+    def _get_client(self, model_version):
         if len(self.azure_clients) > 0:
             for i, v in enumerate(self.azure_configs):
-                if v['kind'] == 'whisper':
+                if v['kind'] == model_version:
                     return self.azure_clients[i], v['model']
 
-        return self.v1_clients[0], 'whisper-1'
-
-    def _dalle_client(self):
-        if len(self.azure_clients) > 0:
-            for i, v in enumerate(self.azure_configs):
-                if v['kind'] == 'dalle3':
-                    return self.azure_clients[i], v['model']
-
-        return self.v1_clients[0], 'dall-e-3'
-
-    def _llm_client(self):
-        if len(self.azure_clients) > 0:
-            for i, v in enumerate(self.azure_configs):
-                if v['kind'] == 'gpt':
-                    return self.azure_clients[i], v['model']
-
-        return self.v1_clients[0], 'gpt-4'
+        return self.v1_clients[0], model_version

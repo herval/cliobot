@@ -9,7 +9,7 @@ from telegram.error import BadRequest, TimedOut, Forbidden
 from telegram.ext import ApplicationBuilder, ConversationHandler, MessageHandler, CallbackQueryHandler, \
     filters
 
-from lib.bots.models import Message, User, MessagingService, BaseBot, CachedContext
+from lib.bots import Message, User, MessagingService, BaseBot, CachedContext
 from lib.errors import TransientFailure, UserBlocked, UnknownError, MessageNoLongerExists, MessageNotModifiable
 from lib.utils import flatten
 
@@ -454,4 +454,3 @@ class TelegramBot(BaseBot):
             metadata=meta,
             is_forward=message.forward_from is not None,
         )
-

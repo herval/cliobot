@@ -5,10 +5,10 @@ from unittest import mock
 from pydantic_core._pydantic_core import ValidationError
 
 from lib.bots.models import MessagingService
-from lib.commands import parse_message, BasePromptModel, notify_errors
+from lib.commands import to_params, BasePrompt, notify_errors
 
 
-class TestClass(BasePromptModel):
+class TestClass(BasePrompt):
     bla: str
     prompt: str
     ble: Optional[int] = None
@@ -17,7 +17,7 @@ class TestClass(BasePromptModel):
 class TestCommandHandler(unittest.IsolatedAsyncioTestCase):
 
     def test_parse_message(self):
-        valid_res = parse_message("/test hello world --bla abc def", {}, TestClass)
+        valid_res = to_params("/test hello world --bla abc def", {}, TestClass)
         print(valid_res)
         assert valid_res is not None
         assert valid_res.command == 'test'
@@ -25,7 +25,7 @@ class TestCommandHandler(unittest.IsolatedAsyncioTestCase):
         assert valid_res.bla == 'abc def'
         assert valid_res.ble is None
 
-        valid_res = parse_message("/test hello world --ble 3", {'bla': 'abc def'}, TestClass)
+        valid_res = to_params("/test hello world --ble 3", {'bla': 'abc def'}, TestClass)
         print(valid_res)
         assert valid_res is not None
         assert valid_res.command == 'test'
@@ -35,11 +35,11 @@ class TestCommandHandler(unittest.IsolatedAsyncioTestCase):
 
         # fails if command is missing
         with self.assertRaises(ValidationError):
-            parse_message("", {}, BasePromptModel)
+            to_params("", {}, BasePrompt)
 
         # fails if missing params
         with self.assertRaises(ValidationError):
-            parse_message("/test", {}, TestClass)
+            to_params("/test", {}, TestClass)
 
     def test_notify_errors(self):
         ms = mock.Mock(MessagingService)

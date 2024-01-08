@@ -214,7 +214,6 @@ class MessagingService:
                          buttons=None):
         raise NotImplementedError()
 
-
 class BaseBot:
     def __init__(self,
                  db,
@@ -242,6 +241,7 @@ class BaseBot:
         self.bot_language = bot_language
         self.cache = cache
         self.metrics = metrics
+        self.models = {}
 
         self.senders = [handler_fn() for _ in range(int(os.cpu_count()))]
 
