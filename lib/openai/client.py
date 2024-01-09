@@ -189,13 +189,13 @@ class OpenAIClient:
         )
         return res.choices[0].message.content
 
-    def _get_client(self, model_version):
+    def _get_client(self, model_kind):
         if len(self.azure_clients) > 0:
             for i, v in enumerate(self.azure_configs):
-                if v['kind'] == model_version:
+                if v['kind'] == model_kind:
                     return self.azure_clients[i], v['model']
 
         if len(self.v1_clients) > 0:
-            return self.v1_clients[0], model_version
+            return self.v1_clients[0], model_kind
 
         raise Exception("No OpenAI client available!")

@@ -3,8 +3,7 @@ venv
 config.yml
 /.env.development
 **.pyc
-/config.test_azure.yml
-/config.test_openai.yml
 /clibot.db
 /tmp
 cache/
+.env

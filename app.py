@@ -11,6 +11,7 @@ from lib.commands.context import ClearContext, PrintContext
 from lib.commands.help import Help
 from lib.commands.images import TextToImage, DescribeImage
 from lib.commands.text import Ask
+from lib.config import load_config
 from lib.errors import BaseErrorHandler
 from lib.metrics import BaseMetrics
 
@@ -22,8 +23,7 @@ from lib.utils import abs_path
 class App:
 
     def __init__(self):
-        with open('config.yml', 'r') as file:
-            config = yaml.safe_load(file)
+        config = load_config('config.yml')
 
         storage_driver = config['storage']['driver']
         if storage_driver == 'local':

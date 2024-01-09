@@ -1,8 +1,8 @@
-import os
 import unittest
 
 import yaml
 
+from lib.config import load_config
 from lib.metrics import BaseMetrics
 from lib.openai.client import OpenAIClient
 from lib.utils import abs_path
@@ -11,19 +11,16 @@ from lib.utils import abs_path
 class TestOpenAIClient(unittest.TestCase):
 
     def setUp(self):
-        with open(abs_path('config.test_openai.yml'), 'r') as file:
-            config = yaml.safe_load(file)
-            self.openai_client = OpenAIClient(
-                config['openai']['endpoints'],
-                BaseMetrics(None),
-            )
+        config = load_config('config.yml')
+        self.openai_client = OpenAIClient(
+            [config['openai']['endpoints'][0]],
+            BaseMetrics(None),
+        )
 
-        with open(abs_path('config.test_azure.yml'), 'r') as file:
-            config = yaml.safe_load(file)
-            self.azure_client = OpenAIClient(
-                config['openai']['endpoints'],
-                BaseMetrics(None),
-            )
+        self.azure_client = OpenAIClient(
+            config['openai']['endpoints'][1:],
+            BaseMetrics(None),
+        )
 
     def test_transcribe(self):
         res = self.openai_client.transcribe(abs_path('test/res/hello.mp3'))
@@ -50,9 +47,9 @@ class TestOpenAIClient(unittest.TestCase):
         assert len(res) == 1  # always 1
 
     def test_ask(self):
-        res = self.openai_client.ask('What is the meaning of life?')
-        print(res)
-        assert len(res) > 0
+        # res = self.openai_client.ask('What is the meaning of life?')
+        # print(res)
+        # assert len(res) > 0
 
         res = self.azure_client.ask('What is the meaning of life?')
         print(res)

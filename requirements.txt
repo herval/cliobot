@@ -7,6 +7,7 @@ pydantic
 Pillow
 requests
 pyyaml
+python-dotenv
 
 
 # all of these are OPTIONAL, only needed if you want to use additional features

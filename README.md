@@ -29,7 +29,8 @@ natural language interpretation versus cost (since running GPT4 & other models c
 
 ## Built-in commands
 
-Cliobot comes with a set of built-in commands that you can use out of the box. You can also easily add your own commands!
+Cliobot comes with a set of built-in commands that you can use out of the box. You can also easily add your own
+commands!
 
 ### /image
 
@@ -49,13 +50,12 @@ Built-in implementations: OpenAI Whisper-1
 ### /ask
 
 Ask a question to an LLM agent. This doesn't take any conversation context.
-Built-in implementations: GPT-4 or any model supported by [Ollama](https://github.com/jmorganca/ollama) running in server mode.
+Built-in implementations: GPT-4 or any model supported by [Ollama](https://github.com/jmorganca/ollama) running in
+server mode.
 
 ### /chat [WIP]
 
 Chat with an LLM agent, including a backlog of context
-
-
 
 ## Command syntax
 
@@ -77,14 +77,13 @@ An example of a command using the default dalle3 image generation command would 
 /dalle3 a giant hamster in space --size 1024x1024
 ```
 
-
 ## Installing
 
 Running a bot locally is simple:
 
 - Clone this repo
 - Setup the python env
-- Rename `config.yml.example` to `config.yml` and set the appropriate variables you want.
+- Rename `config.example.yml` to `config.yml` and set the appropriate variables you want.
 - Install all dependencies with:
 
 ```
@@ -154,10 +153,10 @@ openai:
       kind: whisper-1
 ``` 
 
-Notice that for Azure deployments, you'll need to set one entry per model kind (`dall-e-3`, `whisper-1`, `embeddings`, `gpt-4`). The API key can be the same for all of them.
+Notice that for Azure deployments, you'll need to set one entry per model
+kind (`dall-e-3`, `whisper-1`, `embeddings`, `gpt-4`). The API key can be the same for all of them.
 
-
-## Confguring Ollama
+## Configuring Ollama
 
 In order to use any LLM via Ollama, simply include the following in your config.yml:
 
@@ -174,6 +173,78 @@ Each model on the `models` list will be exposed as a model on the bot. You can t
 /ask what's the meaning of life? --model llama2
 ```
 
+## Configuring Replicate
+
+You can use any model hosted on [Replicate](https://replicate.com/) by mapping it out on your config.yml. The mapping is
+a bit more involved than other models, since you need to map out each parameter. Here's a complete example using SDXL
+hosted on Replicate:
+
+```
+replicate:
+  api_token: xxx
+  endpoints:
+    - model: 'sdxl'
+      kind: 'image'
+      version: 'stability-ai/sdxl:39ed52f2a78e934b3ba6e2a89f5b1c712de7dfea535525255b1aa35c5565e08b'
+      params:
+        prompt:
+          kind: str
+          required: true
+        negative_prompt:
+          alias: no
+          kind: str
+        width:
+          kind: int
+          default: 1024
+        height:
+          kind: int
+          default: 1024
+        num_outputs:
+          alias: num
+          kind: int
+          default: 1
+        num_inference_steps:
+          alias: steps
+          kind: int
+          default: 25
+        guidance_scale:
+            alias: cfg
+            kind: float
+            default: 7.5
+        prompt_strength:
+            alias: ps
+            kind: float
+            default: 0.8
+        seed:
+            kind: int
+        apply_watermark:
+            alias: watermark
+            kind: bool
+            default: true
+        scheduler:
+            kind: str
+            default: 'KarrasDPM'
+        refine:
+            kind: str
+            alias: refiner
+            default: 'no_refiner'
+            value_map:
+              no: no_refiner
+              expert: expert_ensemble_refiner
+              base: base_image_refiner
+        refine_steps:
+            kind: int
+            alias: rs
+```
+
+With the above config, you'll be able to generate images using the following command:
+
+```
+/image photo of a giant hamster in space --model sdxl --no illustration, cartoon, drawing --width 1280 --num 4 --steps 50 --rs 8 --refiner expert
+```
+
+Notice the parameter names on your slash command will match the param name on the config, _or_ an optional `alias`. This
+allows you to use shorter parameter names on your commands (eg typing out `--no` instead of `--negative_prompt`).
 
 ## Built-in extensions
 
@@ -183,8 +254,6 @@ These are all deactivated by default, but easily enabled:
 - Automatic message translation using Google Translate API
 - Utilization metrics using MixPanel
 - S3 for file storage
-
-## Configuring
 
 ## Key features
 
@@ -210,7 +279,6 @@ TODO
 - Local LLM support
 - Stable Diffusion
 - StableHorde processing
-
 
 ## TODO
 
