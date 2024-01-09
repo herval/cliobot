@@ -1,13 +1,14 @@
 import json
 from typing import Optional
 
-from lib.commands import Model, GenerationResults, BasePrompt
 import requests
 
+from lib.commands import Model, GenerationResults, BasePrompt
 from lib.utils import decode_image
 
 
 class OllamaPrompt(BasePrompt):
+    prompt: Optional[str] = "what's in this image?"
     image: Optional[str]
 
 class OllamaText(Model):
@@ -43,7 +44,6 @@ class OllamaText(Model):
             if 'error' in body:
                 raise Exception(body['error'])
 
-            if body.get('done', True):
-                return GenerationResults(
-                    texts=[response.strip()]
-                )
+        return GenerationResults(
+            texts=[response.strip()]
+        )

@@ -46,7 +46,10 @@ openai:
 ollama:
   endpoint: http://localhost:11434
   models:
-    - llama2
+    - model: llama2
+      kind: 'ask'
+    - model: llava
+      kind: 'describe'
 
 replicate:
   api_token: $REPLICATE_API_TOKEN
@@ -145,4 +148,4 @@ default_models:
   ask: llama2
   transcribe: whisper-1
   image: dall-e-3
-  describe: gpt-4-vision
+  describe: gpt-4-vision-preview

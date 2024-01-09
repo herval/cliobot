@@ -15,7 +15,6 @@ from lib.config import load_config
 from lib.errors import BaseErrorHandler
 from lib.metrics import BaseMetrics
 
-from lib.ollama.client import OllamaText
 from lib.translator import NullTranslator
 from lib.utils import abs_path
 
@@ -62,10 +61,10 @@ class App:
             # Transcribe,
         ]
 
-        txt2img_models = {}
-        transcribe_models = {}
-        describe_models = {}
-        ask_models = {}
+        txt2img_models: dict = {}
+        transcribe_models: dict = {}
+        describe_models: dict = {}
+        ask_models: dict = {}
 
         if config.get('replicate', None):
             print("**** Using Replicate API ****")
@@ -89,12 +88,28 @@ class App:
                     ask_models[v['model']] = cli
 
         if config.get('ollama', None):
+            from lib.ollama.client import OllamaText
+
             print("**** Using Ollama API ****")
             endpoint = config['ollama']['endpoint']
-            for m in config['ollama']['models']:
-                ask_models[m] = OllamaText(
+            for v in config['ollama']['models']:
+                m = OllamaText(
                     endpoint=endpoint,
                 )
+                h = None
+
+                if v['kind'] == 'ask':
+                    h = ask_models
+                elif v['kind'] == 'describe':
+                    h = describe_models
+                elif v['kind'] == 'transcribe':
+                    h = transcribe_models
+                elif v['kind'] == 'image':
+                    h = txt2img_models
+
+                if h:
+                    h[v['model']] = m
+
 
         if config.get('openai', None):
             print("**** Using OpenAI API ****")

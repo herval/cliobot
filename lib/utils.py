@@ -3,6 +3,7 @@ import hashlib
 import io
 import os
 from io import BytesIO
+from pathlib import Path
 
 import requests
 from PIL import Image
@@ -69,7 +70,9 @@ def decode_image(file_or_url) -> str:
     :param file_or_url:
     :return:
     """
-    if file_or_url.startswith('data:image/png;base64,'):
+    if isinstance(file_or_url, Path):
+        return image_to_base64(Image.open(file_or_url))
+    elif file_or_url.startswith('data:image/png;base64,'):
         return file_or_url
     elif file_or_url.startswith('/'):
         with open(file_or_url, "rb") as f:

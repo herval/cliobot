@@ -76,7 +76,7 @@ class Dalle3(Model):
 
 class DescribePrompt(BasePrompt):
     image: str
-    prompt: str
+    prompt: str = "what's this?"
 
 
 class Gpt4Vision(Model):
@@ -87,9 +87,9 @@ class Gpt4Vision(Model):
         self.openai_client = openai_client
 
     async def generate(self, parsed) -> GenerationResults:
-        res = self.openai_client.img2txt(
+        res = self.openai_client.img2text(
             prompt=parsed.prompt,
-            image_url=parsed.url,
+            image_url=parsed.image,
         )
 
         return GenerationResults(texts=[res])

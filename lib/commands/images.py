@@ -78,11 +78,20 @@ class DescribeImage(ModelBackedCommand):
         )
 
     async def run(self, parsed, model, message, context, bot):
-        parsed.image = await cached_get_file(
+        if isinstance(parsed, dict): # unparsed prompt...
+            image_id = parsed.get('image', None)
+        else:
+            image_id = parsed.image
+
+        image = await cached_get_file(
             context=context,
-            file_id=parsed.image,
+            file_id=image_id,
             bot=bot,
         )
+        if isinstance(parsed, dict):
+            parsed['image'] = image
+        else:
+            parsed.image = image
 
         res = await model.generate(parsed)
         for r in res.texts:

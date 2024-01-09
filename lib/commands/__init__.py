@@ -61,8 +61,10 @@ def to_params(message, context) -> dict:
     # Initialize the Pydantic model
     params = {
         'command': command,
-        'prompt': prompt
     }
+
+    if prompt is not None:
+        params['prompt'] = prompt
 
     for k, v in context.to_dict().items():
         params[k] = v
@@ -167,21 +169,23 @@ class ModelBackedCommand(BaseCommand):
         """
 
         params = to_params(message, context)
-        if params.get('model', None) is None:
+        model_name = params.get('model', self.default_model)
+
+        if model_name is None:
             model = next(iter(self.models.values()))
         else:
-            model = self.models.get(params['model'], None)
-            if model is None and params['model'] in MODEL_ALIASES:
-                model = self.models.get(MODEL_ALIASES[params['model']], None)
+            model = self.models.get(model_name, None)
+            if model is None and model_name in MODEL_ALIASES:
+                model = self.models.get(MODEL_ALIASES[model_name], None)
 
             if model is None and self.default_model:
                 model = self.models.get(self.default_model, None)
 
-            if model is None:
-                await send_error_message(bot.messaging_service,
-                                         f"Model {params['model']} not found",
-                                         message.chat_id)
-                return False
+        if model is None:
+            await send_error_message(bot.messaging_service,
+                                     f"Model {model_name} not found",
+                                     message.chat_id)
+            return False
 
         if model.prompt_class:
             try:
