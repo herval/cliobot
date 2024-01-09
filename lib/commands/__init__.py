@@ -1,11 +1,11 @@
-from typing import List
+from typing import List, Optional
 
 from pydantic import BaseModel, ValidationError
 
 
 class BasePrompt(BaseModel):
     command: str
-    prompt: str = ''
+    prompt: Optional[str]
     model: str = None
 
 
@@ -18,10 +18,7 @@ async def send_error_message_image(messaging_service, text, message):
     except Exception as e:
         print(e)
 
-    await messaging_service.send_message(
-        chat_id=message.chat_id,
-        text=f"🚨 {text}",
-    )
+    await send_error_message(messaging_service, text, message.chat_id)
 
 
 async def send_error_message(messaging_service, text, chat_id):

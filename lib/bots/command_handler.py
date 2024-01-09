@@ -135,8 +135,7 @@ class CommandHandler:
 
 
             if fallback in self.command_handlers:
-                message.text = f'/{fallback} {message.text}'
-                context.set('command', fallback)
+                message.text = f'/{fallback} {message.text}'.strip()
                 await self.exec(self.command_handlers[fallback], message, context, bot)
 
     async def poll(self, bot):
