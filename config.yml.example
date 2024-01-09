@@ -56,3 +56,9 @@ fallback_commands:
   audio: transcribe
   voice: transcribe
   text: ask
+
+default_models:
+  ask: llama2
+  transcribe: whisper-1
+  image: dall-e-3
+  describe: gpt-4-vision
