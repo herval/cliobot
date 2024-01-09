@@ -1,8 +1,8 @@
 import unittest
 
-from lib.commands import BasePrompt
 from lib.config import load_config
-from lib.ollama.client import OllamaText
+from lib.ollama.client import OllamaText, OllamaPrompt
+from lib.utils import abs_path
 
 
 class TestOpenAIClient(unittest.IsolatedAsyncioTestCase):
@@ -15,7 +15,7 @@ class TestOpenAIClient(unittest.IsolatedAsyncioTestCase):
 
     async def test_text(self):
         res = await self.text_client.generate(
-            BasePrompt(
+            OllamaPrompt(
                 command='',
                 prompt='Hello there',
                 model='llama2',
@@ -24,3 +24,15 @@ class TestOpenAIClient(unittest.IsolatedAsyncioTestCase):
         print(res)
         self.assertIsNot(res.texts, [])
 
+
+    async def test_describe(self):
+        res = await self.text_client.generate(
+            OllamaPrompt(
+                command='',
+                prompt='whats this?',
+                model='llava',
+                image=abs_path('test/res/sandwich.jpg'),
+            )
+        )
+        print(res)
+        self.assertIsNot(res.texts, [])
