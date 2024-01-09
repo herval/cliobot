@@ -37,7 +37,7 @@ Cliobot comes with a set of built-in commands that you can use out of the box. Y
 Generates an image from a text prompt.
 Current implementation uses DALL-E 3.
 
-### /describe
+### /describe [WIP]
 
 Describe an image using text.
 Current implementation uses GPT4V.
