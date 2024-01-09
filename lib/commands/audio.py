@@ -3,7 +3,7 @@ from lib.db.utils import cached_get_file
 
 
 class Transcribe(ModelBackedCommand):
-    def __init__(self, models):
+    def __init__(self, models, default_model):
         super().__init__(
             command='transcribe',
             name="transcribe",
@@ -13,6 +13,7 @@ class Transcribe(ModelBackedCommand):
                 "upload or forward an audio file with /transcribe"
             ],
             models=models,
+            default_model=default_model,
         )
 
     async def run(self, parsed, model, message, context, bot):

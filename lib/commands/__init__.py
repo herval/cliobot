@@ -68,7 +68,7 @@ def to_params(message, context) -> dict:
         params[k] = v
 
     # Iterate through the tokens to find key-value pairs (e.g., --bla abc)
-    for i in range(1, len(tokens), 2):
+    for i in range(1, len(tokens), 1):
         value = None
         if i + 1 < len(tokens) and tokens[i].startswith('--'):
             key = tokens[i][2:]
@@ -138,9 +138,10 @@ class Model:
 
 
 class ModelBackedCommand(BaseCommand):
-    def __init__(self, command, name, description, examples, models, reply_only=False):
+    def __init__(self, command, name, description, examples, models, default_model=None, reply_only=False):
         super().__init__(command, name, description, examples, reply_only)
         self.models = models
+        self.default_model = default_model
 
     async def run(self, parsed, model, message, context, bot) -> bool:
         """
@@ -161,6 +162,9 @@ class ModelBackedCommand(BaseCommand):
             model = next(iter(self.models.values()))
         else:
             model = self.models.get(params['model'], None)
+            if model is None and self.default_model:
+                model = self.models.get(self.default_model, None)
+
             if model is None:
                 await send_error_message(bot.messaging_service,
                                          f"Model {params['model']} not found",
@@ -169,8 +173,14 @@ class ModelBackedCommand(BaseCommand):
 
         try:
             parsed = model.prompt_class(**params)
+            if parsed.model is None:
+                parsed.model = params.get('model', self.default_model)
         except ValidationError as e:
             await notify_errors(e, bot.messaging_service, message.chat_id, message.message_id)
             return False
 
-        return await self.run(parsed, model, message, context, bot)
+        try:
+            return await self.run(parsed, model, message, context, bot)
+        except Exception as e:
+            await notify_errors(e, bot.messaging_service, message.chat_id, message.message_id)
+            return False

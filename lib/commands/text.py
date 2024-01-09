@@ -2,7 +2,7 @@ from lib.commands import ModelBackedCommand
 
 
 class Ask(ModelBackedCommand):
-    def __init__(self, models):
+    def __init__(self, models, default_model):
         super().__init__(
             command='ask',
             name="ask",
@@ -11,6 +11,7 @@ class Ask(ModelBackedCommand):
                 "/ask what's the meaning of life?",
             ],
             models=models,
+            default_model=default_model,
         )
 
     async def run(self, parsed, model, message, context, bot) -> bool:

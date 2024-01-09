@@ -4,42 +4,49 @@ from unittest import mock
 
 from pydantic_core._pydantic_core import ValidationError
 
-from lib.bots.models import MessagingService
+from lib.bots import MessagingService, Message, Context
 from lib.commands import to_params, BasePrompt, notify_errors
 
 
-class TestClass(BasePrompt):
-    bla: str
-    prompt: str
-    ble: Optional[int] = None
+def msg(txt):
+    return Message(
+        text=txt,
+        user_id='123',
+        chat_id='456',
+        message_id='789',
+        user={},
+    )
+
+
+def ctx(ctx):
+    return Context(
+        user_id='123',
+        chat_id='456',
+        app_name='test',
+        context=ctx,
+    )
 
 
 class TestCommandHandler(unittest.IsolatedAsyncioTestCase):
 
     def test_parse_message(self):
-        valid_res = to_params("/test hello world --bla abc def", {}, TestClass)
+        valid_res = to_params(
+            msg("/test hello world ! --bla abc def"),
+            ctx({}))
+
         print(valid_res)
-        assert valid_res is not None
-        assert valid_res.command == 'test'
-        assert valid_res.prompt == 'hello world'
-        assert valid_res.bla == 'abc def'
-        assert valid_res.ble is None
+        self.assertEqual(valid_res['command'], 'test')
+        self.assertEqual(valid_res['prompt'], 'hello world !')
+        self.assertEqual(valid_res['bla'], 'abc def')
+        self.assertIsNone(valid_res.get('ble'))
 
-        valid_res = to_params("/test hello world --ble 3", {'bla': 'abc def'}, TestClass)
+        valid_res = to_params(msg("/test hello world --ble 3"), ctx({'bla': 'abc def'}))
         print(valid_res)
-        assert valid_res is not None
-        assert valid_res.command == 'test'
-        assert valid_res.prompt == 'hello world'
-        assert valid_res.bla == 'abc def'
-        assert valid_res.ble == 3
+        self.assertEqual(valid_res['command'], 'test')
+        self.assertEqual(valid_res['prompt'], 'hello world')
+        self.assertEqual(valid_res['bla'], 'abc def')
+        self.assertEqual(valid_res['ble'], '3')
 
-        # fails if command is missing
-        with self.assertRaises(ValidationError):
-            to_params("", {}, BasePrompt)
-
-        # fails if missing params
-        with self.assertRaises(ValidationError):
-            to_params("/test", {}, TestClass)
 
     def test_notify_errors(self):
         ms = mock.Mock(MessagingService)
