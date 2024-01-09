@@ -83,8 +83,8 @@ class App:
                     describe_models[v['model']] = cli
                 elif v['kind'] == 'transcribe':
                     transcribe_models[v['model']] = cli
-                elif v['kind'] == 'describe':
-                    describe_models[v['model']] = cli
+                elif v['kind'] == 'image':
+                    txt2img_models[v['model']] = cli
                 elif v['kind'] == 'ask':
                     ask_models[v['model']] = cli
 
