@@ -13,6 +13,8 @@ from lib.commands.images import TextToImage, DescribeImage
 from lib.commands.text import Ask
 from lib.errors import BaseErrorHandler
 from lib.metrics import BaseMetrics
+
+from lib.ollama.client import OllamaText
 from lib.translator import NullTranslator
 from lib.utils import abs_path
 
@@ -65,9 +67,17 @@ class App:
         describe_models = {}
         ask_models = {}
 
+        if config.get('ollama', None):
+            print("**** Using Ollama API ****")
+            endpoint = config['ollama']['endpoint']
+            for m in config['ollama']['models']:
+                ask_models[m] = OllamaText(
+                    endpoint=endpoint,
+                )
+
         if config.get('openai', None):
-            from lib.openai.client import OpenAIClient
-            from lib.openai.models import GPTPrompt, Whisper1, Dalle3
+            print("**** Using OpenAI API ****")
+            from lib.openai.client import OpenAIClient, GPTPrompt, Whisper1, Dalle3, Gpt4Vision
 
             openai_client = OpenAIClient(
                 endpoints=config['openai']['endpoints'],
@@ -77,18 +87,21 @@ class App:
             txt2img_models['dalle3'] = Dalle3(openai_client)
             transcribe_models['whisper1'] = Whisper1(openai_client)
             ask_models['gpt4'] = GPTPrompt(openai_client)
+            describe_models['gpt4v'] = Gpt4Vision(openai_client)
+
+        defaults = config.get('default_models', {})
 
         if len(txt2img_models) > 0:
-            commands.append(TextToImage(txt2img_models))
+            commands.append(TextToImage(txt2img_models, defaults.get('image', None)))
 
         if len(transcribe_models) > 0:
-            commands.append(Transcribe(transcribe_models))
+            commands.append(Transcribe(transcribe_models, defaults.get('transcribe', None)))
 
         if len(describe_models) > 0:
-            commands.append(DescribeImage(describe_models))
+            commands.append(DescribeImage(describe_models, defaults.get('describe', None)))
 
         if len(ask_models) > 0:
-            commands.append(Ask(ask_models))
+            commands.append(Ask(ask_models, defaults.get('ask', None)))
 
         commands.append(Help(commands))
 

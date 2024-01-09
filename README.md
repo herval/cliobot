@@ -8,8 +8,7 @@ platform for running generative AI agents that can handle audio, video, text and
 It can be easily extend it to use multiple APIs and services, from Stable Diffusion to OpenAI, and you can run it on
 your own device or deploy it online.
 
-It comes with Telegram support and multiuser handling out of the box, and minimal dependencies (everything stays in
-memory by default).
+It comes with Telegram support and multiuser handling out of the box, and minimal dependencies.
 
 Important: This repo is a work in progress - I'm porting over code from a startup I was working on, so it's still a bit
 rough and subject to multiple rewrites.
@@ -35,22 +34,27 @@ Cliobot comes with a set of built-in commands that you can use out of the box. Y
 ### /image
 
 Generates an image from a text prompt.
-Current implementation uses DALL-E 3.
+Built-in implementations: DALL-E 3.
 
 ### /describe [WIP]
 
 Describe an image using text.
-Current implementation uses GPT4V.
+Built-in implementations: OpenAI GPT4V.
 
 ### /transcribe
 
 Transcribes an audio file into text.
-Current implementation uses Whisper-1
+Built-in implementations: OpenAI Whisper-1
 
 ### /ask
 
-Ask a question to an AI agent.
-Current implementation uses GPT-4 by default
+Ask a question to an LLM agent. This doesn't take any conversation context.
+Built-in implementations: GPT-4 or any model supported by [Ollama](https://github.com/jmorganca/ollama) running in server mode.
+
+### /chat [WIP]
+
+Chat with an LLM agent, including a backlog of context
+
 
 
 ## Command syntax
@@ -72,6 +76,7 @@ An example of a command using the default dalle3 image generation command would 
 ```
 /dalle3 a giant hamster in space --size 1024x1024
 ```
+
 
 ## Installing
 
@@ -109,6 +114,67 @@ source venv/bin/activate
 python app.py
 ```
 
+## Configuring OpenAI
+
+To use OpenAI models (gpt, dalle3, whisper, etc), include the following in your config.yml:
+
+```
+openai:
+  endpoints:
+    - api_key: sk-....
+      api_type: open_ai
+      base_url: https://api.openai.com/v1/
+
+    - api_key: xxx
+      api_type: azure
+      api_version: 2023-10-01-preview
+      base_url: https://xxx.openai.azure.com
+      model: gpt4
+      kind: gpt-4
+
+    - api_key: xxx
+      api_type: azure
+      api_version: 2
+      base_url: https://xxx.openai.azure.com
+      model: embeddings
+      kind: embeddings
+
+    - api_key: xxx
+      api_type: azure
+      api_version: 2023-12-01-preview
+      base_url: https://xxx.openai.azure.com
+      model: dalle3
+      kind: dall-e-3
+
+    - api_key: xxx
+      api_type: azure
+      api_version: 2023-12-01-preview
+      base_url: https://xxx.openai.azure.com
+      model: whisper1
+      kind: whisper-1
+``` 
+
+Notice that for Azure deployments, you'll need to set one entry per model kind (`dall-e-3`, `whisper-1`, `embeddings`, `gpt-4`). The API key can be the same for all of them.
+
+
+## Confguring Ollama
+
+In order to use any LLM via Ollama, simply include the following in your config.yml:
+
+```
+ollama:
+  endpoint: http://localhost:11434
+  models:
+    - llama2
+```
+
+Each model on the `models` list will be exposed as a model on the bot. You can then use it by using the `/ask` command:
+
+```
+/ask what's the meaning of life? --model llama2
+```
+
+
 ## Built-in extensions
 
 These are all deactivated by default, but easily enabled:
@@ -123,6 +189,7 @@ These are all deactivated by default, but easily enabled:
 ## Key features
 
 - OpenAI API support for DALL-E, GPT-3, GPT-4 and Whisper, including Azure support and multiple API keys
+- Ollama support
 - Multiuser support
 - File storage support (local & S3)
 - Automatic message translation using Google Translate API

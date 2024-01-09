@@ -1,10 +1,10 @@
 from lib.commands import send_error_message_image, ModelBackedCommand
-from lib.db.utils import upload_asset
+from lib.db.utils import upload_asset, cached_get_file
 from lib.utils import abs_path
 
 
 class TextToImage(ModelBackedCommand):
-    def __init__(self, models):
+    def __init__(self, models, default_model):
         super().__init__(
             command='image',
             name="image",
@@ -13,6 +13,7 @@ class TextToImage(ModelBackedCommand):
                 "/image a hamster astronaut floating in space",
             ],
             models=models,
+            default_model=default_model,
         )
 
     async def run(self, parsed, model, message, context, bot):
@@ -64,7 +65,7 @@ class TextToImage(ModelBackedCommand):
 
 
 class DescribeImage(ModelBackedCommand):
-    def __init__(self, models):
+    def __init__(self, models, default_model):
         super().__init__(
             command='describe',
             name="describe_image",
@@ -73,11 +74,20 @@ class DescribeImage(ModelBackedCommand):
                 "/describe",
             ],
             models=models,
+            default_model=default_model,
         )
 
     async def run(self, parsed, model, message, context, bot):
-        return await bot.messaging_service.send_message(
-            reply_to_message_id=message.message_id,
-            chat_id=message.chat_id,
-            text="Please send me an image to describe",
+        parsed.image = await cached_get_file(
+            context=context,
+            file_id=parsed.image,
+            bot=bot,
         )
+
+        res = await model.generate(parsed)
+        for r in res.texts:
+            await bot.messaging_service.send_message(
+                text=r,
+                chat_id=message.chat_id,
+                reply_to_message_id=message.message_id,
+            )

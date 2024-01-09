@@ -1,11 +1,98 @@
 from pathlib import Path
 
 import openai
+from pydantic import Field
+
+from lib.commands import BasePrompt, Model, GenerationResults, ImageUrl
+from lib.utils import image_to_base64, open_image
 
 VALID_DALLE3_SIZES = ['1024x1792', '1024x1024', '1792x1024']
 DALLE3_RATIOS = [float(x[0]) / float(x[1]) for x in
                  [x.split('x') for x in VALID_DALLE3_SIZES]
                  ]
+
+
+# A set of commands using OpenAI's APIs
+class TranscribePrompt(BasePrompt):
+    audio: str
+    model: str = 'whisper-1'
+
+
+class Whisper1(Model):
+    def __init__(self, openai_client):
+        self.openai_client = openai_client
+        super().__init__(
+            TranscribePrompt
+        )
+
+    async def generate(self, parsed) -> GenerationResults:
+        txt = self.openai_client.transcribe(parsed.audio)
+        return GenerationResults(texts=[txt])
+
+
+class GPTPrompt(Model):
+    def __init__(self, openai_client):
+        super().__init__(
+            prompt_class=BasePrompt,
+        )
+        self.openai_client = openai_client
+
+    async def generate(self, parsed):
+        res = self.openai_client.ask(
+            parsed.prompt
+        )
+        return GenerationResults(texts=[res])
+
+
+class Dalle3Prompt(BasePrompt):
+    size: str = Field(default='1024x1024',
+                      examples=VALID_DALLE3_SIZES)  # TODO adjust size?
+
+
+class Dalle3(Model):
+    def __init__(self, openai_client):
+        super().__init__(
+            prompt_class=Dalle3Prompt,
+        )
+        self.openai_client = openai_client
+
+    async def generate(self, parsed) -> GenerationResults:
+        res = self.openai_client.dalle3_txt2img(
+            prompt=parsed.prompt,
+            num=1,
+            size=parsed.size,
+        )
+
+        return GenerationResults(
+            images=[
+                ImageUrl(
+                    url=img.url,
+                    prompt=img.revised_prompt,
+                )
+                for img in res
+            ]
+        )
+
+
+class DescribePrompt(BasePrompt):
+    image: str
+    prompt: str
+
+
+class Gpt4Vision(Model):
+    def __init__(self, openai_client):
+        super().__init__(
+            prompt_class=DescribePrompt,
+        )
+        self.openai_client = openai_client
+
+    async def generate(self, parsed) -> GenerationResults:
+        res = self.openai_client.img2txt(
+            prompt=parsed.prompt,
+            image_url=parsed.url,
+        )
+
+        return GenerationResults(texts=[res])
 
 
 def dalle_size(size):
@@ -51,6 +138,35 @@ class OpenAIClient:
         )
 
         return res.text
+
+    def img2text(self, prompt, image_url, max_tokens=300) -> str:
+        if not image_url.startswith('http'):
+            image_url = image_to_base64(
+                open_image(image_url),
+            )
+
+        client, model = self._get_client('gpt-4-vision-preview')
+
+        response = client.chat.completions.create(
+            model=model,
+            messages=[
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": prompt},
+                        {
+                            "type": "image_url",
+                            "image_url": {
+                                "url": image_url,
+                            },
+                        },
+                    ],
+                }
+            ],
+            max_tokens=max_tokens,
+        )
+
+        return response.choices[0].message.content
 
     def dalle3_txt2img(self, prompt, num, size):
         client, model = self._get_client('dall-e-3')

@@ -4,6 +4,7 @@ import os
 from io import BytesIO
 
 import requests
+from PIL import Image
 
 
 def md5_hash(txt):
@@ -68,3 +69,17 @@ def image_to_base64(image):
     if not d.startswith('data:image/png;base64,'):
         d = 'data:image/png;base64,' + d
     return d
+
+
+def open_image(r):
+    if r.startswith('http'):
+        return Image.open(BytesIO(download(r)))
+    return Image.open(r)
+
+
+def download(url):
+    r = requests.get(url)
+    if r.status_code == 200:
+        return r.content
+    else:
+        raise Exception(f"Failed to download {url} {r.status_code}")

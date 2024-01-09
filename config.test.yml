@@ -1,0 +1,5 @@
+
+ollama:
+  endpoint: http://localhost:11434
+  models:
+    - llama2
