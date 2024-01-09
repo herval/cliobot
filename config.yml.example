@@ -3,6 +3,12 @@ mode: command
 locale: en
 
 openai:
+  models:
+    - gpt-4
+    - whisper-1
+    - dall-e-3
+    - gpt-4-vision
+
   endpoints:
     - api_key: sk-...
       api_type: open_ai

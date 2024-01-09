@@ -1,5 +1,6 @@
 import base64
 import hashlib
+import io
 import os
 from io import BytesIO
 
@@ -60,6 +61,22 @@ def download_string(url):
     r = requests.get(url)
     if r.status_code == 200:
         return r.text
+
+def decode_image(file_or_url) -> str:
+    """
+    convert a file to base64 if it's local or use the url if remote
+
+    :param file_or_url:
+    :return:
+    """
+    if file_or_url.startswith('data:image/png;base64,'):
+        return file_or_url
+    elif file_or_url.startswith('/'):
+        with open(file_or_url, "rb") as f:
+            binary_data = f.read()
+        return image_to_base64(Image.open(io.BytesIO(binary_data)))
+    else:
+        return file_or_url  # full url
 
 
 def image_to_base64(image):

@@ -4,7 +4,7 @@ import openai
 from pydantic import Field
 
 from lib.commands import BasePrompt, Model, GenerationResults, ImageUrl
-from lib.utils import image_to_base64, open_image
+from lib.utils import image_to_base64, open_image, decode_image
 
 VALID_DALLE3_SIZES = ['1024x1792', '1024x1024', '1792x1024']
 DALLE3_RATIOS = [float(x[0]) / float(x[1]) for x in
@@ -140,10 +140,7 @@ class OpenAIClient:
         return res.text
 
     def img2text(self, prompt, image_url, max_tokens=300) -> str:
-        if not image_url.startswith('http'):
-            image_url = image_to_base64(
-                open_image(image_url),
-            )
+        image_url = decode_image(image_url)
 
         client, model = self._get_client('gpt-4-vision-preview')
 

@@ -84,10 +84,19 @@ class App:
                 metrics=metrics,
             )
 
-            txt2img_models['dalle3'] = Dalle3(openai_client)
-            transcribe_models['whisper1'] = Whisper1(openai_client)
-            ask_models['gpt4'] = GPTPrompt(openai_client)
-            describe_models['gpt4v'] = Gpt4Vision(openai_client)
+            models = config['openai']['models']
+
+            if 'dall-e-3' in models:
+                txt2img_models['dall-e-3'] = Dalle3(openai_client)
+
+            if 'whisper-1' in models:
+                transcribe_models['whisper-1'] = Whisper1(openai_client)
+
+            if 'gpt-4' in models:
+                ask_models['gpt-4'] = GPTPrompt(openai_client)
+
+            if 'gpt-4-vision-preview' in models:
+                describe_models['gpt-4-vision-preview'] = Gpt4Vision(openai_client)
 
         defaults = config.get('default_models', {})
 

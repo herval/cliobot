@@ -125,6 +125,15 @@ class GenerationResults(BaseModel):
     images: List[ImageUrl] = None
 
 
+# for practicality reasons...
+MODEL_ALIASES = {
+    'dalle3': 'dall-e-3',
+    'whisper1': 'whisper-1',
+    'gpt4': 'gpt-4',
+    'gpt4v': 'gpt-4-vision-preview',
+}
+
+
 class Model:
     """
     A model is a class that contains a prompt class and a generate function that takes a prompt and returns a result
@@ -162,6 +171,9 @@ class ModelBackedCommand(BaseCommand):
             model = next(iter(self.models.values()))
         else:
             model = self.models.get(params['model'], None)
+            if model is None and params['model'] in MODEL_ALIASES:
+                model = self.models.get(MODEL_ALIASES[params['model']], None)
+
             if model is None and self.default_model:
                 model = self.models.get(self.default_model, None)
 
