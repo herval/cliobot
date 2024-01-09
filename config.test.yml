@@ -3,3 +3,41 @@ ollama:
   endpoint: http://localhost:11434
   models:
     - llama2
+
+
+replicate:
+  api_token: xxx
+  endpoints:
+    - model: 'llava13'
+      kind: 'describe'
+      version: "yorickvp/llava-13b:6bc1c7bb0d2a34e413301fee8f7cc728d2d4e75bfab186aa995f63292bda92fc"
+      params:
+        prompt:
+          kind: str
+          required: true
+        image:
+          kind: image
+          required: true
+        max_tokens:
+          kind: int
+          default: 1024
+    - model: 'sdxl'
+      kind: 'image'
+      version: 'stability-ai/sdxl:39ed52f2a78e934b3ba6e2a89f5b1c712de7dfea535525255b1aa35c5565e08b'
+      params:
+        prompt:
+          kind: str
+          required: true
+        negative_prompt:
+          alias: no
+          kind: str
+        width:
+          kind: int
+          default: 1024
+        height:
+          kind: int
+          default: 1024
+        num_outputs:
+          alias: num
+          kind: int
+          default: 1

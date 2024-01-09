@@ -67,6 +67,27 @@ class App:
         describe_models = {}
         ask_models = {}
 
+        if config.get('replicate', None):
+            print("**** Using Replicate API ****")
+            from lib.replicate.client import ReplicateEndpoint
+
+            models = config['replicate']['endpoints']
+            for v in models:
+                cli = ReplicateEndpoint(
+                    v['kind'],
+                    config['replicate']['api_token'],
+                    v['version'],
+                    v['params'],
+                )
+                if v['kind'] == 'describe':
+                    describe_models[v['model']] = cli
+                elif v['kind'] == 'transcribe':
+                    transcribe_models[v['model']] = cli
+                elif v['kind'] == 'describe':
+                    describe_models[v['model']] = cli
+                elif v['kind'] == 'ask':
+                    ask_models[v['model']] = cli
+
         if config.get('ollama', None):
             print("**** Using Ollama API ****")
             endpoint = config['ollama']['endpoint']
@@ -85,7 +106,6 @@ class App:
             )
 
             models = config['openai']['models']
-
             if 'dall-e-3' in models:
                 txt2img_models['dall-e-3'] = Dalle3(openai_client)
 

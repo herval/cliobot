@@ -1,0 +1,116 @@
+env: development
+mode: command
+locale: en
+
+# # Uncomment this to use OpenAI models
+#openai:
+#  models:
+#    - gpt-4
+#    - whisper-1
+#    - dall-e-3
+#    - gpt-4-vision
+#
+#  endpoints:
+#    - api_key: sk-...
+#      api_type: open_ai
+#      base_url: https://api.openai.com/v1/
+#
+#    - api_key: azureapikeyhere
+#      api_type: azure
+#      api_version: 2023-10-01-preview
+#      base_url: https://xxxxx.openai.azure.com
+#      model: deploymentname
+#      kind: gpt-4
+#
+#    - api_key: azureapikeyhere
+#      api_type: azure
+#      api_version: 2
+#      base_url: https://xxxxx.openai.azure.com
+#      model: deploymentname
+#      kind: embeddings
+#
+#    - api_key: azureapikeyhere
+#      api_type: azure
+#      api_version: 2023-12-01-preview
+#      base_url: https://xxxxx.openai.azure.com
+#      model: dalle3
+#      kind: dall-e-3
+#
+#    - api_key: azureapikeyhere
+#      api_type: azure
+#      api_version: 2023-12-01-preview
+#      base_url: https://xxxxx.openai.azure.com
+#      model: whisper1
+#      kind: whisper-1
+
+
+# # Uncomment this to use Ollama
+#ollama:
+#  endpoint: http://localhost:11434
+#  models:
+#    - llama2
+
+# # Uncomment this to use replicate models
+#replicate:
+#  api_token: xxx
+#  endpoints:
+#    - model: 'llava13'
+#      kind: 'describe'
+#      version: "yorickvp/llava-13b:6bc1c7bb0d2a34e413301fee8f7cc728d2d4e75bfab186aa995f63292bda92fc"
+#      params:
+#        prompt:
+#          kind: str
+#          required: true
+#        image:
+#          kind: image
+#          required: true
+#        max_tokens:
+#          kind: int
+#          default: 1024
+#    - model: 'sdxl'
+#      kind: 'image'
+#      version: 'stability-ai/sdxl:39ed52f2a78e934b3ba6e2a89f5b1c712de7dfea535525255b1aa35c5565e08b'
+#      params:
+#        prompt:
+#          kind: str
+#          required: true
+#        negative_prompt:
+#          alias: no
+#          kind: str
+#        width:
+#          kind: int
+#          default: 1024
+#        height:
+#          kind: int
+#          default: 1024
+#        num_outputs:
+#          alias: num
+#          kind: int
+#          default: 1
+
+bot:
+  platform: telegram
+  token: "1234567890:ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
+
+storage:
+  driver: local
+  folder: tmp/
+#  driver: s3
+#  bucket: my-bucket
+#  zone: eu-west-1
+#  access_key: my-key
+# secret_key: my-secret
+
+database:
+  driver: sqlite3
+
+fallback_commands:
+  audio: transcribe
+  voice: transcribe
+  text: ask
+
+default_models:
+  ask: llama2
+  transcribe: whisper-1
+  image: dall-e-3
+  describe: gpt-4-vision

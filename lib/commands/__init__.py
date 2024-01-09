@@ -183,13 +183,16 @@ class ModelBackedCommand(BaseCommand):
                                          message.chat_id)
                 return False
 
-        try:
-            parsed = model.prompt_class(**params)
-            if parsed.model is None:
-                parsed.model = params.get('model', self.default_model)
-        except ValidationError as e:
-            await notify_errors(e, bot.messaging_service, message.chat_id, message.message_id)
-            return False
+        if model.prompt_class:
+            try:
+                parsed = model.prompt_class(**params)
+                if parsed.model is None:
+                    parsed.model = params.get('model', self.default_model)
+            except ValidationError as e:
+                await notify_errors(e, bot.messaging_service, message.chat_id, message.message_id)
+                return False
+        else:
+            parsed = params
 
         try:
             return await self.run(parsed, model, message, context, bot)
