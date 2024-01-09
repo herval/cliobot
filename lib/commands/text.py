@@ -16,10 +16,11 @@ class Ask(ModelBackedCommand):
     async def run(self, parsed, model, message, context, bot) -> bool:
         res = await model.generate(parsed)
 
-        await bot.messaging_service.send_message(
-            text=res.text,
-            chat_id=message.chat_id,
-            reply_to_message_id=message.message_id,
-        )
+        for r in res.texts:
+            await bot.messaging_service.send_message(
+                text=r,
+                chat_id=message.chat_id,
+                reply_to_message_id=message.message_id,
+            )
 
         return True

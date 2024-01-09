@@ -13,7 +13,7 @@ openai:
       api_version: 2023-10-01-preview
       base_url: https://xxxxx.openai.azure.com
       model: deploymentname
-      kind: gpt
+      kind: gpt-4
 
     - api_key: azureapikeyhere
       api_type: azure
@@ -27,14 +27,14 @@ openai:
       api_version: 2023-12-01-preview
       base_url: https://xxxxx.openai.azure.com
       model: dalle3
-      kind: dalle3
+      kind: dall-e-3
 
     - api_key: azureapikeyhere
       api_type: azure
       api_version: 2023-12-01-preview
       base_url: https://xxxxx.openai.azure.com
       model: whisper1
-      kind: whisper
+      kind: whisper-1
 
 bot:
   platform: telegram
@@ -48,3 +48,11 @@ storage:
 #  zone: eu-west-1
 #  access_key: my-key
 # secret_key: my-secret
+
+database:
+  driver: sqlite3
+
+fallback_commands:
+  audio: transcribe
+  voice: transcribe
+  text: ask

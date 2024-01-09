@@ -5,7 +5,7 @@ from pydantic import BaseModel, ValidationError
 
 class BasePrompt(BaseModel):
     command: str
-    prompt: str
+    prompt: str = ''
     model: str = None
 
 

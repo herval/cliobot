@@ -29,9 +29,13 @@ class Transcribe(ModelBackedCommand):
         )
 
         res = await model.generate(parsed)
+        await bot.messaging_service.delete_message(
+            message_id=msg.message_id,
+            chat_id=message.chat_id,
+        )
         for r in res.texts:
             await bot.messaging_service.send_message(
-                text=r.text,
+                text=r,
                 chat_id=message.chat_id,
                 reply_to_message_id=message.message_id,
             )

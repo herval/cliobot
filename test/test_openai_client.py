@@ -28,11 +28,11 @@ class TestOpenAIClient(unittest.TestCase):
     def test_transcribe(self):
         res = self.openai_client.transcribe(abs_path('test/res/hello.mp3'))
         print(res)
-        assert res == 'Hello there'
+        self.assertEqual(res, 'Hello there')
 
         res = self.azure_client.transcribe(abs_path('test/res/hello.mp3'))
         print(res)
-        assert res == 'Hello there'
+        self.assertEqual(res, 'Hello there')
 
     def test_dalle_txt2img(self):
         res = self.azure_client.dalle3_txt2img(

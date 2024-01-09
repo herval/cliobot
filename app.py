@@ -65,8 +65,6 @@ class App:
         describe_models = {}
         ask_models = {}
 
-        models = {}
-
         if config.get('openai', None):
             from lib.openai.client import OpenAIClient
             from lib.openai.models import GPTPrompt, Whisper1, Dalle3
@@ -92,6 +90,7 @@ class App:
         if len(ask_models) > 0:
             commands.append(Ask(ask_models))
 
+        commands.append(Help(commands))
 
         self.internal_queue = queue.Queue()
 
@@ -108,9 +107,7 @@ class App:
 
         if config['mode'] == 'command':
             handler = lambda: CommandHandler(
-                fallback_command=Help(
-                    commands,
-                ),
+                fallback_commands=config['fallback_commands'],
                 commands=commands,
             )
         else:

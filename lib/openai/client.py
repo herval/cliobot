@@ -82,4 +82,7 @@ class OpenAIClient:
                 if v['kind'] == model_version:
                     return self.azure_clients[i], v['model']
 
-        return self.v1_clients[0], model_version
+        if len(self.v1_clients) > 0:
+            return self.v1_clients[0], model_version
+
+        raise Exception("No OpenAI client available!")

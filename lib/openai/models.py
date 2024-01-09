@@ -9,7 +9,6 @@ from lib.openai.client import VALID_DALLE3_SIZES
 # A set of commands using OpenAI's APIs
 class TranscribePrompt(BasePrompt):
     audio: str
-    prompt: Optional[str] = None
     model: str = 'whisper1'
 
 class Whisper1(Model):

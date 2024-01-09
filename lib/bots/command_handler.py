@@ -4,7 +4,8 @@ from sys import exc_info
 from typing import Optional
 
 from lib.bots import Message, CachedContext
-from lib.commands import BaseCommand, to_params
+from lib.commands import BaseCommand
+from lib.utils import is_empty
 
 
 def app_name(bot_name):
@@ -21,10 +22,10 @@ class CommandHandler:
     """
 
     def __init__(self,
-                 fallback_command,
+                 fallback_commands: dict,
                  commands,
                  ):
-        self.fallback_command = fallback_command
+        self.fallback_commands = fallback_commands
         self.running = True
         self.sender_loop = None
         self.commands = commands
@@ -118,7 +119,25 @@ class CommandHandler:
                     'chat_id': message.chat_id,
                 }
             )
-            await self.fallback_command.process(message, context, bot)
+
+            if message.audio and 'audio' in self.fallback_commands:
+                fallback = self.fallback_commands['audio']
+            elif message.video and 'video' in self.fallback_commands:
+                fallback = self.fallback_commands['video']
+            elif message.voice and 'voice' in self.fallback_commands:
+                fallback = self.fallback_commands['voice']
+            elif message.image and 'image' in self.fallback_commands:
+                fallback = self.fallback_commands['image']
+            elif message.text and 'text' in self.fallback_commands:
+                fallback = self.fallback_commands['text']
+            else:
+                fallback = None
+
+
+            if fallback in self.command_handlers:
+                message.text = f'/{fallback} {message.text}'
+                context.set('command', fallback)
+                await self.exec(self.command_handlers[fallback], message, context, bot)
 
     async def poll(self, bot):
         while self.running:

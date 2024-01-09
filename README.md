@@ -138,7 +138,21 @@ TODO
 ## Planned features
 
 - S3 file storage
--
 - Discord integration
 - Whatsapp integration
+- Local LLM support
+- Stable Diffusion
+- StableHorde processing
+
+
+## TODO
+
+- chat history
+- Finish the LLM mode
+- save generated images to storage
+- save uploads
+- i18n support
+- txt2img commands w/ replicate
+- img2txt commands
+- llama implementation
 
