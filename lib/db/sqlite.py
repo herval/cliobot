@@ -50,7 +50,7 @@ class SqliteDb(Database):
         if res is None:
             return {}
         else:
-            return json.loads(res[0])
+            return json.loads(res)
 
     def set_chat_context(self, app_name, chat_id, context):
         cur = self.conn.cursor()
@@ -70,7 +70,7 @@ class SqliteDb(Database):
         if res is None:
             return None
 
-        return res[0]
+        return res
 
 
     def save_asset(self, external_id, user_id, chat_id, storage_path) -> (dict, bool):

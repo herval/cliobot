@@ -27,7 +27,8 @@ class TextToImage(ModelBackedCommand):
 
         try:
             res = await model.generate(parsed)
-            for r in res.images:
+            images = res.images
+            for r in images:
                 upload_asset(
                     context=context,
                     local_path=r.url,
@@ -36,17 +37,17 @@ class TextToImage(ModelBackedCommand):
                     folder='outputs',
                 )
 
-            if len(res.images) == 1:
+            if len(images) == 1:
                 await bot.messaging_service.edit_message_media(
                     chat_id=msg.chat_id,
                     message_id=msg.id,
                     media={
-                        'image': res.images[0].url
+                        'image': images[0].url
                     },
-                    text=res[0].prompt,
+                    text=images[0].prompt,
                 )
-            elif len(res.images) > 1:
-                for r in res:
+            elif len(images) > 1:
+                for r in images:
                     await bot.messaging_service.send_media(
                         chat_id=msg.chat_id,
                         media={
@@ -54,6 +55,10 @@ class TextToImage(ModelBackedCommand):
                         },
                         text=r.prompt,
                     )
+                await bot.messaging_service.delete_message(
+                    message_id=msg.id,
+                    chat_id=msg.chat_id,
+                )
         except Exception as e:
             await send_error_message_image(bot.messaging_service, e.__str__(), message)
 
@@ -76,4 +81,3 @@ class DescribeImage(ModelBackedCommand):
             chat_id=message.chat_id,
             text="Please send me an image to describe",
         )
-
