@@ -35,23 +35,27 @@ commands!
 ### /image
 
 Generates an image from a text prompt.
-Built-in implementations: DALL-E 3.
+
+Built-in implementations: DALL-E 3, any image model hosted on Replicate.com.
 
 ### /describe [WIP]
 
 Describe an image using text.
-Built-in implementations: OpenAI GPT4V.
+
+Built-in implementations: OpenAI GPT4V, Ollama (Llava, etc), any image to text model hosted on Replicate.com.
 
 ### /transcribe
 
 Transcribes an audio file into text.
+
 Built-in implementations: OpenAI Whisper-1
 
 ### /ask
 
 Ask a question to an LLM agent. This doesn't take any conversation context.
+
 Built-in implementations: GPT-4 or any model supported by [Ollama](https://github.com/jmorganca/ollama) running in
-server mode.
+server mode, any LLM hosted on Replicate.com.
 
 ### /chat [WIP]
 
@@ -258,7 +262,8 @@ These are all deactivated by default, but easily enabled:
 ## Key features
 
 - OpenAI API support for DALL-E, GPT-3, GPT-4 and Whisper, including Azure support and multiple API keys
-- Ollama support
+- Ollama support for any LLM model (including image to text)
+- Support for any model hosted on Replicate.com
 - Multiuser support
 - File storage support (local & S3)
 - Automatic message translation using Google Translate API
@@ -287,7 +292,6 @@ TODO
 - save generated images to storage
 - save uploads
 - i18n support
-- txt2img commands w/ replicate
 - img2txt commands
 - llama implementation
 
