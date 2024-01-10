@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Optional
 
 import openai
 from pydantic import Field
@@ -16,6 +17,7 @@ DALLE3_RATIOS = [float(x[0]) / float(x[1]) for x in
 class TranscribePrompt(BasePrompt):
     audio: str
     model: str = 'whisper-1'
+    prompt: Optional[str] = ""
 
 
 class Whisper1(Model):
