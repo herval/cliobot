@@ -42,7 +42,9 @@ class App:
         db_driver = config['db']['driver']
         if db_driver == 'sqlite3':
             from lib.db.sqlite import SqliteDb
-            db = SqliteDb()
+            db = SqliteDb(
+                file=config['db'].get('file', abs_path('clibot.db'))
+            )
         elif db_driver == 'inmemory':
             from lib.db import InMemoryDb
             db = InMemoryDb()
@@ -109,7 +111,6 @@ class App:
 
                 if h:
                     h[v['model']] = m
-
 
         if config.get('openai', None):
             print("**** Using OpenAI API ****")

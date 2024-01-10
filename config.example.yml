@@ -127,10 +127,11 @@ bot:
 db:
   #  driver: inmemory
   driver: sqlite3
+  file: data/db.sqlite3
 
 storage:
   driver: local
-  folder: tmp/
+  folder: data/
 #  driver: s3
 #  bucket: my-bucket
 #  zone: eu-west-1

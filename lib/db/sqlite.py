@@ -8,8 +8,8 @@ from lib.utils import abs_path
 
 class SqliteDb(Database):
 
-    def __init__(self):
-        self.conn = sqlite3.connect(abs_path('clibot.db'), check_same_thread=False)
+    def __init__(self, file):
+        self.conn = sqlite3.connect(file, check_same_thread=False)
         self.conn.row_factory = dict_factory
         self._create_tables()
 
