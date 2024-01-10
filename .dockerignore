@@ -1,0 +1,11 @@
+venv/
+cache/
+tmp/
+config.yml
+.env
+*.pyc
+*.pyo
+*.pyd
+.Python
+.idea
+.git

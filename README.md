@@ -117,6 +117,15 @@ source venv/bin/activate
 python app.py
 ```
 
+## Running with Docker
+
+If you don't have Python on your system or just prefer to keep things simple, you can run Cliobot using Docker too:
+
+```
+docker build -t cliobot .
+docker run -it --rm -v $(pwd)/data:/content/data -v $(pwd)/.env:/content/.env -v $(pwd)/config.yml:/content/config.yml cliobot
+```
+
 ## Configuring OpenAI
 
 To use OpenAI models (gpt, dalle3, whisper, etc), include the following in your config.yml:
