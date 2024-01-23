@@ -9,7 +9,7 @@ from lib.cache import InMemoryCache
 from lib.commands.audio import Transcribe
 from lib.commands.help import Help
 from lib.commands.images import TextToImage, DescribeImage
-from lib.commands.session import SetPreference, ListPreferences, ClearContext, PrintContext
+from lib.commands.session import SetPreference, ListPreferences, ClearContext, PrintContext, ListModels
 from lib.commands.text import Ask
 from lib.config import load_config
 from lib.errors import BaseErrorHandler
@@ -150,6 +150,13 @@ class App:
         if len(ask_models) > 0:
             commands.append(Ask(ask_models, defaults.get('ask', None)))
 
+        commands.append(
+            ListModels(
+                txt2img_models,
+                transcribe_models,
+                describe_models,
+                ask_models,
+            ))
         commands.append(Help(commands))
 
         self.internal_queue = queue.Queue()

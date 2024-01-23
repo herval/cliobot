@@ -6,6 +6,38 @@ from lib.utils import locale
 
 # context manipulation commands
 
+class ListModels(BaseCommand):
+    def __init__(self, txt2img, transcribe, describe, ask):
+        super().__init__(
+            command='models',
+            name="list_models",
+            description="Lists all available models",
+            examples=[
+                "/models",
+            ],
+            prompt_class=None,
+        )
+        self.models = {
+            'Text to Image': txt2img,
+            'Transcribe': transcribe,
+            'Describe': describe,
+            'Ask': ask,
+        }
+
+    async def run(self, parsed, message, session, bot):
+        models = []
+
+        for k, v in self.models.items():
+            if len(v) > 0:
+                models.append(k + ':')
+                models.extend([f'- {k}' for k, v in v.items()])
+                models.append('\n')
+
+        return await bot.messaging_service.send_message(
+            text='Available models:\n' + '\n'.join(models),
+            chat_id=message.chat_id,
+        )
+
 class ClearContext(BaseCommand):
     def __init__(self):
         super().__init__(
