@@ -5,5 +5,5 @@ en:
     read_docs: Read the Documentation
   results:
     preference_set: "Preference %{attr} set to %{value}"
-    current_preferences: "Preferences:\n %{preferences}"
-    current_context: "Current context:\n %{context}"
+    current_preferences: "Preferences:\n%{preferences}"
+    current_context: "Current context:\n%{context}"

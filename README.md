@@ -138,6 +138,22 @@ webui:
 
 Notice you'll need to start webui with the `--api` flag. The `auth` field is optional (you can leave it blank if you don't use API authentication). For more information on how to use the API, please refer to the [official documentation](https://github.com/AUTOMATIC1111/stable-diffusion-webui/wiki/API).
 
+### Supported operations
+
+You can use any Stable Diffusion model that's installed along webui with the `/image` command. The following parameters are supported:
+
+```
+steps: int = 20
+sampler: str = 'DPM++ 2M SDE'
+width: int = 512
+height: int = 512
+batchcount: int = 1
+batchsize: int = 1
+cfg: int = 7
+seed: int = -1
+negative: str = ''
+```
+
 ## Configuring OpenAI
 
 To use OpenAI models (gpt, dalle3, whisper, etc), include the following in your config.yml:
