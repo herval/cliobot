@@ -78,7 +78,7 @@ command after you provide all the inputs.
 An example of a command using the default dalle3 image generation command would be as follows:
 
 ```
-/dalle3 a giant hamster in space --size 1024x1024
+/image a giant hamster in space --size 1024x1024 --model dalle3
 ```
 
 ## Installing
@@ -140,19 +140,13 @@ Notice you'll need to start webui with the `--api` flag. The `auth` field is opt
 
 ### Supported operations
 
-You can use any Stable Diffusion model that's installed along webui with the `/image` command. The following parameters are supported:
+You can use any Stable Diffusion model that's installed along webui with the `/image` command. The following is an example using all the supported parameters:
+
 
 ```
-steps: int = 20
-sampler: str = 'DPM++ 2M SDE'
-width: int = 512
-height: int = 512
-batchcount: int = 1
-batchsize: int = 1
-cfg: int = 7
-seed: int = -1
-negative: str = ''
+/image a hamster in space --negative cartoon, drawing, illustration --model sdxl1.0 --steps 20 --sampler 'DPM++ 2M SDE' --cfg 7 --seed 1234 --steps 50 --width 1024 --height 1024 --batchcount 1 --batchsize 4
 ```
+
 
 ## Configuring OpenAI
 
