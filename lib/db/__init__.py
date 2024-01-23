@@ -3,10 +3,7 @@ from typing import Optional
 
 class Database:
 
-    def get_chat_context(self, app_name, chat_id):
-        raise NotImplementedError()
-
-    def set_chat_context(self, app_name, chat_id, context):
+    def set_chat_context(self, app_name, chat_id, context, preferences):
         raise NotImplementedError()
 
     def create_or_get_chat_session(self, user_id, app):
@@ -40,13 +37,10 @@ class InMemoryDb(Database):
     def update_job(self, job_id, app_name, fields):
         pass
 
-    def get_chat_context(self, app_name, chat_id):
-        return self.chats.get(chat_id, {})
-
     def get_model(self, slug, kind):
         return None
 
-    def set_chat_context(self, app_name, chat_id, context):
+    def set_chat_context(self, app_name, chat_id, context, preferences):
         self.chats[chat_id] = context
 
     def create_or_get_chat_session(self, user_id, app):

@@ -131,6 +131,9 @@ class Session:
             if k.endswith('_audio') and v is not None
         }
 
+    def set_preference(self, key, val):
+        self.preferences[key] = val
+
 
 class CachedSession(Session):
     def __init__(self, chat_session, chat_id):
@@ -149,8 +152,13 @@ class CachedSession(Session):
 
     def persist(self, db):
         if self.dirty:  # commit changes
-            db.set_chat_context(self.app_name, self.chat_id, self.to_dict())
+            db.set_chat_context(self.app_name, self.chat_id, self.context, self.preferences)
             self.dirty = False
+
+    def set_preference(self, key, val):
+        if self.preferences.get(key) != val:
+            self.dirty = True
+        super().set_preference(key, val)
 
     def set(self, key, value):
         if self.context.get(key) != value:

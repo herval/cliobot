@@ -42,23 +42,11 @@ class SqliteDb(Database):
         )
         self.conn.commit()
 
-    def get_chat_context(self, app_name, chat_id):
+    def set_chat_context(self, app_name, chat_id, context, preferences):
         cur = self.conn.cursor()
         cur.execute(
-            "SELECT context FROM chat_sessions WHERE id = ? AND app = ?",
-            (chat_id, app_name)
-        )
-        res = cur.fetchone()
-        if res is None:
-            return {}
-        else:
-            return json.loads(res)
-
-    def set_chat_context(self, app_name, chat_id, context):
-        cur = self.conn.cursor()
-        cur.execute(
-            "UPDATE chat_sessions SET context = ? WHERE id = ? AND app = ?",
-            (json.dumps(context), chat_id, app_name)
+            "UPDATE chat_sessions SET context = ?, preferences = ? WHERE id = ? AND app = ?",
+            (json.dumps(context), json.dumps(preferences), chat_id, app_name)
         )
         self.conn.commit()
 

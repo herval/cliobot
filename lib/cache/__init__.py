@@ -17,8 +17,6 @@ class BaseCache:
     def set_chat_context(self, app_name, chat_id, context):
         raise NotImplementedError()
 
-    def get_chat_context(self, app_name, chat_id):
-        raise NotImplementedError()
 
 
 class InMemoryCache(BaseCache):
@@ -40,5 +38,3 @@ class InMemoryCache(BaseCache):
     def set_chat_context(self, app_name, chat_id, context):
         self.cache[f'context_{app_name}_{chat_id}'] = context
 
-    def get_chat_context(self, app_name, chat_id):
-        return self.cache.get(f'context_{app_name}_{chat_id}', {})

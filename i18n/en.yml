@@ -4,4 +4,6 @@ en:
   buttons:
     read_docs: Read the Documentation
   results:
-    preference_set: "Preference %{key} set to %{value}"
+    preference_set: "Preference %{attr} set to %{value}"
+    current_preferences: "Preferences:\n %{preferences}"
+    current_context: "Current context:\n %{context}"

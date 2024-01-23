@@ -47,6 +47,7 @@ class ClearContext(BaseCommand):
             examples=[
                 "/clear",
             ],
+            prompt_class=None,
         )
 
     async def run(self, parsed, message, session, bot):
@@ -60,19 +61,24 @@ class ClearContext(BaseCommand):
 class PrintContext(BaseCommand):
     def __init__(self):
         super().__init__(
-            command='print',
+            command='context',
             name="print_context",
             description="Prints the context of the current chat",
             examples=[
                 "/print",
             ],
+            prompt_class=None,
         )
 
     async def run(self, parsed, message, session, bot):
         ctx = '\n'.join([f'{k}: {v}' for k, v in session.context.items() if v is not None])
+        if len(ctx) == 0:
+            msg = 'Nothing in context'
+        else:
+            msg = t('results.current_context', context=ctx, locale=locale(session))
 
         return await bot.messaging_service.send_message(
-            text=t('result.current_context', context=ctx, locale=locale(session)),
+            text=msg,
             chat_id=message.chat_id,
         )
 
@@ -89,12 +95,12 @@ class SetPreference(BaseCommand):
         )
 
     async def run(self, parsed, message, session, bot) -> bool:
-        key, val = parsed.prompt.split(' ', 1)
+        attr, val = parsed.prompt.split(' ', 1)
 
-        session.set_preference(key, val)
+        session.set_preference(attr, val)
 
         return await bot.messaging_service.send_message(
-            text=t('results.preference_set', key=key, value=val, locale=locale(session)),
+            text=t('results.preference_set', attr=attr, value=val, locale=locale(session)),
             chat_id=message.chat_id,
         )
 
@@ -102,18 +108,23 @@ class SetPreference(BaseCommand):
 class ListPreferences(BaseCommand):
     def __init__(self):
         super().__init__(
-            command='list',
+            command='preferences',
             name="list_preferences",
             description="Lists all preferences for the current chat",
             examples=[
                 "/list",
             ],
+            prompt_class=None,
         )
 
     async def run(self, parsed, message, session, bot) -> bool:
         prefs = '\n'.join([f'{k}: {v}' for k, v in session.preferences.items()])
+        if len(prefs) == 0:
+            msg = 'No preferences set'
+        else:
+            msg = t('results.current_preferences', preferences=prefs, locale=locale(session))
 
         return await bot.messaging_service.send_message(
-            text=t('results.current_preferences', preferences=prefs, locale=locale(session)),
+            text=msg,
             chat_id=message.chat_id,
         )
