@@ -11,7 +11,7 @@ def asset_filename(folder, user_id, filename):
     return f"{folder}/{user_id}/{filename}"
 
 
-async def cached_get_file(file_id, bot, context) -> Path:
+async def cached_get_file(file_id, bot, session) -> Path:
     """
     get a file_id and return the local path to the file
     if the file is already cached, return the cached file
@@ -19,13 +19,13 @@ async def cached_get_file(file_id, bot, context) -> Path:
 
     :param file_id:
     :param bot:
-    :param context:
+    :param session:
     :return:
     """
     info = await bot.messaging_service.get_file_info(file_id)
     filepath = info['file_path']
 
-    af = abs_path(asset_filename('cache', context.user_id, hashed_filename(filepath)))
+    af = abs_path(asset_filename('cache', session.user_id, hashed_filename(filepath)))
     if os.path.exists(af):
         return Path(af)
 
@@ -61,7 +61,7 @@ def hashed_filename(local_path):
 
 
 def upload_asset(
-        context,
+        session,
         local_path,
         db,
         storage,
@@ -71,12 +71,12 @@ def upload_asset(
 
     storage_path = storage.save_data(
         data,
-        asset_filename(folder, context.user_id, hashed_filename(local_path)),
+        asset_filename(folder, session.user_id, hashed_filename(local_path)),
         mimetype=mimetypes.guess_type(local_path)[0],
     )
     return db.save_asset(
         external_id=file_id or md5_hash(local_path),
-        user_id=context.user_id,
-        chat_id=context.chat_id,
+        user_id=session.user_id,
+        chat_id=session.chat_id,
         storage_path=storage_path,
     )

@@ -16,7 +16,7 @@ class Transcribe(ModelBackedCommand):
             default_model=default_model,
         )
 
-    async def run(self, parsed, model, message, context, bot):
+    async def run_model(self, parsed, model, message, session, bot):
         msg = await bot.messaging_service.send_message(
             text='Transcribing...',
             chat_id=message.chat_id,
@@ -24,7 +24,7 @@ class Transcribe(ModelBackedCommand):
         )
 
         parsed.audio = await cached_get_file(
-            context=context,
+            session=session,
             file_id=parsed.audio,
             bot=bot,
         )

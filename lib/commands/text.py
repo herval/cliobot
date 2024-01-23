@@ -14,7 +14,7 @@ class Ask(ModelBackedCommand):
             default_model=default_model,
         )
 
-    async def run(self, parsed, model, message, context, bot) -> bool:
+    async def run_model(self, parsed, model, message, session, bot) -> bool:
         res = await model.generate(parsed)
 
         for r in res.texts:

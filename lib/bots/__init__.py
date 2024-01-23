@@ -141,13 +141,14 @@ class Context:
         }
 
 
-class CachedContext(Context):
-    def __init__(self, cached_context, app_name, chat_id):
-        super().__init__(user_id=cached_context.get('user_id', None),
+class CachedSession(Session):
+    def __init__(self, chat_session, chat_id):
+        super().__init__(user_id=chat_session.get('external_user_id'),
                          chat_id=chat_id,
-                         app_name=app_name,
-                         context=cached_context.get('context', {}),
-                         preferences=cached_context.get('preferences', {}))
+                         app_name=chat_session.get('app'),
+                         context=chat_session.get('context'),
+                         preferences=chat_session.get('preferences'),
+                         )
         self.dirty = False
 
     def pop(self, key):
@@ -170,11 +171,10 @@ class CachedContext(Context):
         super().clear(clear_user)
 
     @classmethod
-    def from_cache(cls, cache, app_name, chat_id):
-        data = cache.get_chat_context(app_name, chat_id)
+    def from_cache(cls, db, app_name, user_id, chat_id):
+        data = db.create_or_get_chat_session(user_id, app_name)
         return cls(
-            cached_context=data,
-            app_name=app_name,
+            chat_session=data,
             chat_id=chat_id,
         )
 
@@ -192,7 +192,6 @@ class MessagingService:
 
     def supports_editing_media(self):
         return True  # true by default
-
 
     async def get_file_info(self, file_id):
         raise NotImplementedError()
@@ -213,6 +212,7 @@ class MessagingService:
     async def send_media(self, chat_id, media, text, reply_to_message_id=None, context=None, reply_buttons=None,
                          buttons=None):
         raise NotImplementedError()
+
 
 class BaseBot:
     def __init__(self,

@@ -1,7 +1,5 @@
 import unittest
 
-import yaml
-
 from lib.config import load_config
 from lib.metrics import BaseMetrics
 from lib.openai.client import OpenAIClient

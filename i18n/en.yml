@@ -3,3 +3,5 @@ en:
     help: "Please refer to the documentation for a list of commands and how to use them, or use one of the following commands:\n\n%{commands}"
   buttons:
     read_docs: Read the Documentation
+  results:
+    preference_set: "Preference %{key} set to %{value}"

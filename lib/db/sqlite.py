@@ -28,11 +28,13 @@ class SqliteDb(Database):
             self.conn.commit()
             return self.create_or_get_chat_session(external_user_id, app)
         else:
+            res['context'] = json.loads(res['context'])
+            res['preferences'] = json.loads(res['preferences'])
             return res
 
     def save_message(self, user_id, chat_id, text, app, external_id,
                      image=None, audio=None, voice=None, video=None,
-                     is_forward=False, context=None):
+                     is_forward=False):
         cur = self.conn.cursor()
         cur.execute(
             "INSERT INTO chat_messages(external_id, external_user_id, external_chat_id, text, app, external_image_id, external_audio_id, external_voice_id, external_video_id, is_forward) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
@@ -72,7 +74,6 @@ class SqliteDb(Database):
 
         return res
 
-
     def save_asset(self, external_id, user_id, chat_id, storage_path) -> (dict, bool):
         cur = self.conn.cursor()
         cur.execute(
@@ -81,7 +82,6 @@ class SqliteDb(Database):
         )
         self.conn.commit()
         return self.get_asset(external_id, user_id, chat_id)
-
 
     def _create_tables(self):
         with open(abs_path('schema.sql'), 'r') as f:

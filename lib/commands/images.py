@@ -16,7 +16,7 @@ class TextToImage(ModelBackedCommand):
             default_model=default_model,
         )
 
-    async def run(self, parsed, model, message, context, bot):
+    async def run_model(self, parsed, model, message, session, bot):
         msg = await bot.messaging_service.send_media(
             text="Generating image, please wait...",
             chat_id=message.chat_id,
@@ -31,7 +31,7 @@ class TextToImage(ModelBackedCommand):
             images = res.images
             for r in images:
                 upload_asset(
-                    context=context,
+                    session=session,
                     local_path=r.url,
                     db=bot.db,
                     storage=bot.storage,
@@ -77,14 +77,14 @@ class DescribeImage(ModelBackedCommand):
             default_model=default_model,
         )
 
-    async def run(self, parsed, model, message, context, bot):
+    async def run_model(self, parsed, model, message, session, bot):
         if isinstance(parsed, dict): # unparsed prompt...
             image_id = parsed.get('image', None)
         else:
             image_id = parsed.image
 
         image = await cached_get_file(
-            context=context,
+            session=session,
             file_id=image_id,
             bot=bot,
         )

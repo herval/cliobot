@@ -1,7 +1,5 @@
 import unittest
 
-import yaml
-
 from lib.config import load_config
 from lib.replicate.client import ReplicateEndpoint
 from lib.utils import abs_path
@@ -33,7 +31,7 @@ class TestReplicateClient(unittest.IsolatedAsyncioTestCase):
         )
         print(res)
         self.assertIsNot(res.texts, [])
-        self.assertIs(res.images, [])
+        self.assertIs(len(res.images), 0)
 
     async def test_txt2img(self):
         res = await self.txt2img_client.generate(
@@ -44,5 +42,5 @@ class TestReplicateClient(unittest.IsolatedAsyncioTestCase):
             }
         )
         print(res)
-        self.assertIs(res.texts, [])
+        self.assertIs(len(res.texts), 0)
         self.assertIsNot(res.images, [])

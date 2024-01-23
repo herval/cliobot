@@ -23,8 +23,8 @@ def is_empty(txt):
     return txt is None or (isinstance(txt, str) and txt.strip() == '') or False
 
 
-def locale(context):
-    if context.get('language', 'en') == 'br':
+def locale(session):
+    if session.get('language', 'en') == 'br':
         return 'br'
     else:
         return 'en'

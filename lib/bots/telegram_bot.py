@@ -9,7 +9,7 @@ from telegram.error import BadRequest, TimedOut, Forbidden
 from telegram.ext import ApplicationBuilder, ConversationHandler, MessageHandler, CallbackQueryHandler, \
     filters
 
-from lib.bots import Message, User, MessagingService, BaseBot, CachedContext
+from lib.bots import Message, User, MessagingService, BaseBot
 from lib.errors import TransientFailure, UserBlocked, UnknownError, MessageNoLongerExists, MessageNotModifiable
 from lib.utils import flatten
 
@@ -169,7 +169,7 @@ class TelegramMessagingService(MessagingService):
 
     @convert_exceptions
     @retry(TimedOut, tries=2, delay=0.5)
-    async def edit_message(self, message_id, chat_id, text, context=None, reply_buttons=None):
+    async def edit_message(self, message_id, chat_id, text, session=None, reply_buttons=None):
         bot = await self.initialize()
         return await bot.edit_message_text(
             chat_id=chat_id,
@@ -179,7 +179,7 @@ class TelegramMessagingService(MessagingService):
 
     @convert_exceptions
     @retry(TimedOut, tries=2, delay=0.5)
-    async def send_media(self, chat_id, media, reply_to_message_id=None, context=None, text=None, reply_buttons=None,
+    async def send_media(self, chat_id, media, reply_to_message_id=None, session=None, text=None, reply_buttons=None,
                          buttons=None):
         bot = await self.initialize()
 
@@ -219,7 +219,7 @@ class TelegramMessagingService(MessagingService):
 
     @convert_exceptions
     @retry((TimedOut, TransientFailure), tries=2, delay=0.5)
-    async def send_message(self, text, chat_id, context=None, reply_to_message_id=None, reply_buttons=None,
+    async def send_message(self, text, chat_id, session=None, reply_to_message_id=None, reply_buttons=None,
                            buttons=None):
         bot = await self.initialize()
 
@@ -332,21 +332,16 @@ class TelegramBot(BaseBot):
         )
 
     def handler_adapter(self, command):
-        async def wrapper(update, context):
-            print(update, context)
+        async def wrapper(message, context):
+            print(message, context)
             msg = await self._parse_message(
-                message=update.effective_message,
-                user=update.effective_user,
-                chat=update.effective_chat,
+                message=message.effective_message,
+                user=message.effective_user,
+                chat=message.effective_chat,
                 context=context,
-                callback_query=update.callback_query)
+                callback_query=message.callback_query)
 
-            ctx = CachedContext.from_cache(
-                self.cache,
-                self.app_name,
-                msg.chat_id)
-
-            await self.enqueue(msg, ctx)
+            await self.enqueue(msg)
 
         return wrapper
 

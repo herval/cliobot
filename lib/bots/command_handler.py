@@ -3,7 +3,7 @@ import traceback
 from sys import exc_info
 from typing import Optional
 
-from lib.bots import Message, CachedContext
+from lib.bots import Message, CachedSession
 from lib.commands import BaseCommand
 from lib.utils import is_empty
 
@@ -32,7 +32,7 @@ class CommandHandler:
         self.command_handlers = {c.command: c for c in commands}
         self.reply_handlers = [c.command for c in commands if c.reply_only]
 
-    def infer_command(self, update, context) -> Optional[BaseCommand]:
+    def infer_command(self, update, session) -> Optional[BaseCommand]:
         if 'command' in update.metadata:  # callback data takes precedence
             return self.command_handlers[update.metadata.get('command')]
 
@@ -50,25 +50,31 @@ class CommandHandler:
         if update.reply_to_message_id and txt in self.reply_handlers:
             return self.command_handlers[txt]
 
-        if context.get('command'):
-            return self.command_handlers[context.get('command')]
+        if session.get('command'):
+            return self.command_handlers[session.get('command')]
 
         return None
 
-    async def exec(self, command: BaseCommand, update: Message, context: CachedContext, bot):
+    async def exec(self, command: BaseCommand, update: Message, session: CachedSession, bot):
         try:
-            if await command.process(update, context, bot):
-                context.clear()
+            if await command.process(update, session, bot):
+                session.clear()
         except Exception as e:
             traceback.print_exc()
-            bot.metrics.capture_exception(exc_info(), bot.app_name, context.user_id)
+            bot.metrics.capture_exception(exc_info(), bot.app_name, session.user_id)
         finally:
-            context.persist(bot.db)
+            session.persist(bot.db)
 
-    async def message_handler(self, message: Message, context: CachedContext, bot):
-        print('on_message', message.__str__(), context.__str__())
+    async def message_handler(self, message: Message, bot):
+        print('on_message', message.__str__())
+        session = CachedSession.from_cache(
+            db=bot.db,
+            user_id=message.user_id,
+            chat_id=message.chat_id,
+            app_name=bot.app_name)
+
         bot.metrics.error_handler.set_context({
-            "id": context.user_id,
+            "id": session.user_id,
         })
 
         try:
@@ -85,12 +91,12 @@ class CommandHandler:
                 is_forward=message.is_forward,
             )
         except Exception as e:
-            bot.metrics.capture_exception(e, bot.app_name, context.user_id)
+            bot.metrics.capture_exception(e, bot.app_name, session.user_id)
 
-        if context.user_id is None:
+        if session.user_id is None:
             session = bot.db.create_or_get_chat_session(message.user_id, app=bot.app_name)
-            context.chat_id = message.chat_id
-            context.user_id = session.get('external_user_id', None)
+            session.chat_id = message.chat_id
+            session.user_id = session.get('external_user_id', None)
 
         if message.reply_to_message_id and not message.reply_to_message:
             print("Loading reply...")
@@ -98,23 +104,23 @@ class CommandHandler:
 
         message.translate(bot.translator)
 
-        inf = self.infer_command(message, context)
+        inf = self.infer_command(message, session)
         if inf is not None:  # handle as a command input
             bot.metrics.send_event(
                 event="user_command",
                 app_name=bot.app_name,
-                user_id=context.user_id,
+                user_id=session.user_id,
                 params={
                     'command': inf.command,
                     'chat_id': message.chat_id,
                 }
             )
-            await self.exec(inf, message, context, bot)  # command handled, all good
+            await self.exec(inf, message, session, bot)  # command handled, all good
         else:
             bot.metrics.send_event(
                 event="user_message",
                 app_name=bot.app_name,
-                user_id=context.user_id,
+                user_id=session.user_id,
                 params={
                     'chat_id': message.chat_id,
                 }
@@ -136,14 +142,13 @@ class CommandHandler:
 
             if fallback in self.command_handlers:
                 message.text = f'/{fallback} {message.text}'.strip()
-                await self.exec(self.command_handlers[fallback], message, context, bot)
+                await self.exec(self.command_handlers[fallback], message, session, bot)
 
     async def poll(self, bot):
         while self.running:
             try:
                 message = bot.internal_queue.get()
-                update, context = message
-                await self.message_handler(update, context, bot)
+                await self.message_handler(message, bot)
             except (KeyboardInterrupt, SystemExit):
                 print("Shutting down...")
                 self.running = False

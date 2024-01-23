@@ -58,8 +58,13 @@ class ReplicateEndpoint(Model):
             else:
                 txt += r
 
+        if len(txt) > 0:
+            txts = [txt]
+        else:
+            txts = []
+
         return GenerationResults(
-            texts=[txt],
+            texts=txts,
             images=imgs,
         )
 

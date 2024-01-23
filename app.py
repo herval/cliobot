@@ -7,9 +7,9 @@ import i18n
 from lib.bots.command_handler import CommandHandler
 from lib.cache import InMemoryCache
 from lib.commands.audio import Transcribe
-from lib.commands.context import ClearContext, PrintContext
 from lib.commands.help import Help
 from lib.commands.images import TextToImage, DescribeImage
+from lib.commands.session import SetPreference, ListPreferences, ClearContext, PrintContext
 from lib.commands.text import Ask
 from lib.config import load_config
 from lib.errors import BaseErrorHandler
@@ -57,6 +57,8 @@ class App:
         commands = [
             ClearContext(),
             PrintContext(),
+            SetPreference(),
+            ListPreferences(),
             # TextToImage,
             # DescribeImage,
             # Ask,

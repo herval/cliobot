@@ -268,7 +268,7 @@ These are all deactivated by default, but easily enabled:
 - Utilization metrics using MixPanel
 - S3 for file storage
 
-## Key features
+## Features
 
 - OpenAI API support for DALL-E, GPT-3, GPT-4 and Whisper, including Azure support and multiple API keys
 - Ollama support for any LLM model (including image to text)
@@ -276,6 +276,7 @@ These are all deactivated by default, but easily enabled:
 - Multiuser support
 - File storage support (local & S3)
 - Automatic message translation using Google Translate API
+- Persistent preferences to reduce repetitive prompt parameters
 
 ## Running on K8s
 
@@ -287,15 +288,14 @@ TODO
 
 ## Planned features
 
-- S3 file storage
 - Discord integration
 - Whatsapp integration
-- Local LLM support
 - Stable Diffusion
 - StableHorde processing
 
 ## TODO
 
+- RAG mode
 - chat history
 - Finish the LLM mode
 - save generated images to storage

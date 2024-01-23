@@ -47,5 +47,6 @@ create table if not exists chat_sessions
     logged_in_at     timestamp with time zone,
     app              text                                               not null,
     external_user_id text unique,
-    context          jsonb                    default '{}'
+    context          jsonb                    default '{}',
+    preferences      jsonb                    default '{}'
 );

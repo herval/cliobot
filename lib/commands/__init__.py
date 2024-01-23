@@ -28,7 +28,10 @@ async def send_error_message(messaging_service, text, chat_id):
     )
 
 
-def to_params(message, context) -> dict:
+def to_params(message, session) -> dict:
+    context = session.context
+    preferences = session.preferences
+
     # Split the input string into tokens
     tokens = message.text.split()
 
@@ -84,6 +87,10 @@ def to_params(message, context) -> dict:
                 i += 1
 
             params[key] = value
+
+    for k, v in preferences.items():
+        if k not in params:
+            params[k] = v
 
     return params
 
