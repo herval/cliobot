@@ -19,6 +19,12 @@ def abs_path(path):
     return os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", path))
 
 
+def base64_to_bytes(base64_string):
+    if base64_string.startswith('data:image/png;base64,'):
+        base64_string = base64_string[len('data:image/png;base64,'):]
+    return base64.b64decode(base64_string)
+
+
 def is_empty(txt):
     return txt is None or (isinstance(txt, str) and txt.strip() == '') or False
 
@@ -62,6 +68,7 @@ def download_string(url):
     r = requests.get(url)
     if r.status_code == 200:
         return r.text
+
 
 def decode_image(file_or_url) -> str:
     """

@@ -5,7 +5,7 @@ from lib.ollama.client import OllamaText, OllamaPrompt
 from lib.utils import abs_path
 
 
-class TestOpenAIClient(unittest.IsolatedAsyncioTestCase):
+class TestOllamaClient(unittest.IsolatedAsyncioTestCase):
 
     def setUp(self):
         config = load_config('config.yml')

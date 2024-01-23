@@ -136,6 +136,22 @@ class App:
             if 'gpt-4-vision-preview' in models:
                 describe_models['gpt-4-vision-preview'] = Gpt4Vision(openai_client)
 
+        if config.get('webui', None):
+            from lib.webui.client import WebuiClient, Txt2img
+
+            print("**** Using Auto1111 WebUI API ****")
+            client = WebuiClient(
+                config['webui']['endpoint'],
+                config['webui'].get('auth', None),
+            )
+
+            # get all models on boot
+            ms = client.get_models()
+            for m in ms:
+                print("MODEL:", m['model_name'], 'loaded from webui')
+                txt2img_models[m['model_name']] = Txt2img(m['model_name'], client)
+
+
         defaults = config.get('default_models', {})
 
         if len(txt2img_models) > 0:

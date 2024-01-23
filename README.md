@@ -126,6 +126,18 @@ docker build -t cliobot .
 docker run -it --rm -v $(pwd)/data:/content/data -v $(pwd)/.env:/content/.env -v $(pwd)/config.yml:/content/config.yml cliobot
 ```
 
+## Using Automatic1111 WebUI as a backend
+
+You can plug in [Automatic1111 WebUI](https://github.com/AUTOMATIC1111/stable-diffusion-webui) and use it as a backend for image generation! To do so, you'll need to set the following variables on your config.yml:
+
+```
+webui:
+    endpoint: http://localhost:7860
+    auth: user:pass
+```
+
+Notice you'll need to start webui with the `--api` flag. The `auth` field is optional (you can leave it blank if you don't use API authentication). For more information on how to use the API, please refer to the [official documentation](https://github.com/AUTOMATIC1111/stable-diffusion-webui/wiki/API).
+
 ## Configuring OpenAI
 
 To use OpenAI models (gpt, dalle3, whisper, etc), include the following in your config.yml:
