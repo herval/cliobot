@@ -65,24 +65,15 @@ class User:
 
 # context = the "short term memory" of the bot. It survives across requests until cleared
 # preferences = the "long term memory" of the bot. It survives until a user logs off
-class Context:
-    def __init__(self, user_id, chat_id, app_name, context=None, preferences=None):
+class Session:
+    def __init__(self, user_id, chat_id, app_name, context, preferences):
         self.context = {}
         self.user_id = user_id
         self.chat_id = chat_id
         self.app_name = app_name
         self.preferences = {}
-        if context:
-            self.context = context
-            if 'preferences' in context:
-                self.preferences = context['preferences']
-                del self.context['preferences']
-
-        if preferences:
-            self.preferences = preferences
-
-        if self.preferences is None:
-            self.preferences = {}
+        self.context = context
+        self.preferences = preferences
 
     def pop(self, key):
         if key in self.context:
@@ -90,7 +81,7 @@ class Context:
         return None
 
     def __str__(self):
-        return f"Context({self.context})"
+        return f"Session({self.context}, {self.preferences})"
 
     def __repr__(self):
         return self.__str__()
@@ -268,5 +259,5 @@ class BaseBot:
         print("blowing things up, stay calm...")
         [s.stop() for s in self.senders]
 
-    async def enqueue(self, update, context):
-        self.internal_queue.put((update, context))
+    async def enqueue(self, update):
+        self.internal_queue.put(update)

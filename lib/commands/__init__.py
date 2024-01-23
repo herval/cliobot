@@ -69,7 +69,7 @@ def to_params(message, session) -> dict:
     if prompt is not None:
         params['prompt'] = prompt
 
-    for k, v in context.to_dict().items():
+    for k, v in context.items():
         params[k] = v
 
     # Iterate through the tokens to find key-value pairs (e.g., --bla abc)
@@ -110,16 +110,40 @@ async def notify_errors(exc, messaging_service, chat_id, reply_to_message_id=Non
 
 
 class BaseCommand:
-    def __init__(self, command, name, description, examples, reply_only=False):
+    def __init__(self, command, name, description, examples, reply_only=False, prompt_class=BasePrompt):
         self.command = command
         self.name = name
         self.description = description
         self.examples = examples
         self.reply_only = reply_only
+        self.prompt_class = prompt_class
 
     async def process(self, message, context, bot) -> bool:
         """
         parses message and returns the right model to handle it, or None if the message is not a valid command
+        """
+        params = to_params(message, context)
+        if self.prompt_class:
+            try:
+                parsed = self.prompt_class(**params)
+            except ValidationError as e:
+                await notify_errors(e, bot.messaging_service, message.chat_id, message.message_id)
+                return False
+        else:
+            parsed = params
+
+        try:
+            return await self.run(parsed, message, context, bot)
+        except Exception as e:
+            await notify_errors(e, bot.messaging_service, message.chat_id, message.message_id)
+            return False
+
+    async def run(self, parsed, message, context, bot) -> bool:
+        """
+        execute the command and return True if the command was completely handled, or False if the command was either
+        not handled or needs more data (eg. a file upload is pending).
+
+        After a command is handled, the current context is cleared.
         """
         raise NotImplementedError()
 
@@ -161,7 +185,7 @@ class ModelBackedCommand(BaseCommand):
         self.models = models
         self.default_model = default_model
 
-    async def run(self, parsed, model, message, context, bot) -> bool:
+    async def run_model(self, parsed, model, message, session, bot) -> bool:
         """
         execute the command and return True if the command was completely handled, or False if the command was either
         not handled or needs more data (eg. a file upload is pending).
@@ -170,12 +194,12 @@ class ModelBackedCommand(BaseCommand):
         """
         raise NotImplementedError()
 
-    async def process(self, message, context, bot) -> bool:
+    async def process(self, message, session, bot) -> bool:
         """
         parses message and returns the right model to handle it, or None if the message is not a valid command
         """
 
-        params = to_params(message, context)
+        params = to_params(message, session)
         model_name = params.get('model', self.default_model)
 
         if model_name is None:
@@ -206,7 +230,7 @@ class ModelBackedCommand(BaseCommand):
             parsed = params
 
         try:
-            return await self.run(parsed, model, message, context, bot)
+            return await self.run_model(parsed, model, message, session, bot)
         except Exception as e:
             await notify_errors(e, bot.messaging_service, message.chat_id, message.message_id)
             return False

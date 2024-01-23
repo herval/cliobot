@@ -1,0 +1,161 @@
+env: development
+mode: command
+locale: en
+
+openai:
+  models:
+    - gpt-4
+    - whisper-1
+    - dall-e-3
+    - gpt-4-vision-preview
+
+  endpoints:
+    - api_key: $OPENAI_API_TOKEN
+      api_type: open_ai
+      base_url: https://api.openai.com/v1/
+
+    - api_key: $OPENAI_AZURE_API_KEY_GPT35
+      api_type: azure
+      api_version: 2023-10-01-preview
+      base_url: $OPENAI_AZURE_BASE_URL_GPT35
+      model: gpt35turbo16k
+      kind: gpt-3.5
+
+    - api_key: $OPENAI_AZURE_API_KEY_GPT4
+      api_type: azure
+      api_version: 2023-10-01-preview
+      base_url: $OPENAI_AZURE_BASE_URL_GPT4
+      model: gpt4
+      kind: gpt-4
+
+    - api_key: $OPENAI_AZURE_API_KEY_EMBEDDINGS
+      api_type: azure
+      api_version: 2
+      base_url: $OPENAI_AZURE_BASE_URL_EMBEDDINGS
+      model: embeddings
+      kind: embeddings
+
+    - api_key: $OPENAI_AZURE_API_KEY_DALLE3
+      api_type: azure
+      api_version: 2023-12-01-preview
+      base_url: $OPENAI_AZURE_BASE_URL_DALLE3
+      model: dalle3
+      kind: dall-e-3
+
+    - api_key: $OPENAI_AZURE_API_KEY_WHISPER
+      api_type: azure
+      api_version: 2023-12-01-preview
+      base_url: $OPENAI_AZURE_BASE_URL_WHISPER
+      model: whisper1
+      kind: whisper-1
+
+
+ollama:
+  endpoint: http://localhost:11434
+  models:
+    - model: llama2
+      kind: 'ask'
+    - model: llava
+      kind: 'describe'
+
+
+replicate:
+  api_token: $REPLICATE_API_TOKEN
+  endpoints:
+    - model: 'llava13'
+      kind: 'describe'
+      version: "yorickvp/llava-13b:6bc1c7bb0d2a34e413301fee8f7cc728d2d4e75bfab186aa995f63292bda92fc"
+      params:
+        prompt:
+          kind: str
+          required: true
+          default: "what's this?"
+        image:
+          kind: image
+          required: true
+        max_tokens:
+          kind: int
+          default: 1024
+    - model: 'sdxl'
+      kind: 'image'
+      version: 'stability-ai/sdxl:39ed52f2a78e934b3ba6e2a89f5b1c712de7dfea535525255b1aa35c5565e08b'
+      params:
+        prompt:
+          kind: str
+          required: true
+        negative_prompt:
+          alias: no
+          kind: str
+        width:
+          kind: int
+          default: 1024
+        height:
+          kind: int
+          default: 1024
+        num_outputs:
+          alias: num
+          kind: int
+          default: 1
+        num_inference_steps:
+          alias: steps
+          kind: int
+          default: 25
+        guidance_scale:
+          alias: cfg
+          kind: float
+          default: 7.5
+        prompt_strength:
+          alias: ps
+          kind: float
+          default: 0.8
+        seed:
+          kind: int
+        apply_watermark:
+          alias: watermark
+          kind: bool
+          default: true
+        scheduler:
+          kind: str
+          default: 'KarrasDPM'
+        refine:
+          kind: str
+          alias: refiner
+          default: 'no_refiner'
+          value_map:
+            no: no_refiner
+            expert: expert_ensemble_refiner
+            base: base_image_refiner
+        refine_steps:
+          kind: int
+          alias: rs
+
+bot:
+  platform: telegram
+  token: $TELEGRAM_TOKEN
+
+db:
+  #  driver: inmemory
+  driver: sqlite3
+  file: data/db.sqlite3
+
+storage:
+  driver: local
+  folder: data/
+#  driver: s3
+#  bucket: my-bucket
+#  zone: eu-west-1
+#  access_key: my-key
+# secret_key: my-secret
+
+
+fallback_commands:
+  audio: transcribe
+  voice: transcribe
+  text: ask
+
+
+default_models:
+  ask: llama2
+  transcribe: whisper-1
+  image: dall-e-3
+  describe: gpt-4-vision-preview
