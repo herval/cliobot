@@ -1,4 +1,5 @@
 import contextvars
+from pathlib import Path
 
 import httpcore
 from retry import retry
@@ -59,6 +60,10 @@ def convert_exceptions(func):
 
 def convert_media(media):
     if 'image' in media:
+        path = media['image']
+        if path.startswith('/'):
+            path = Path(path)
+
         return InputMediaPhoto(
             media=media['image'],
             filename=media.get('filename', None),

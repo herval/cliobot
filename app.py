@@ -23,6 +23,8 @@ class App:
 
     def __init__(self):
         config = load_config('config.yml')
+        temp_dir = abs_path("tmp")
+        os.makedirs(temp_dir, exist_ok=True)
 
         storage_driver = config['storage']['driver']
         if storage_driver == 'local':
@@ -143,6 +145,7 @@ class App:
             client = WebuiClient(
                 config['webui']['endpoint'],
                 config['webui'].get('auth', None),
+                temp_dir=temp_dir,
             )
 
             # get all models on boot
@@ -182,9 +185,6 @@ class App:
 
         cache = InMemoryCache()
         db = db
-
-        temp_dir = abs_path("tmp")
-        os.makedirs(temp_dir, exist_ok=True)
 
         translator = NullTranslator()
 

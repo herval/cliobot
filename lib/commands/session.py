@@ -71,7 +71,7 @@ class PrintContext(BaseCommand):
         )
 
     async def run(self, parsed, message, session, bot):
-        ctx = '\n'.join([f'{k}: {v}' for k, v in session.context.items() if v is not None])
+        ctx = '\n'.join([f'- {k}: {v}' for k, v in session.context.items() if v is not None])
         if len(ctx) == 0:
             msg = 'Nothing in context'
         else:
@@ -118,7 +118,7 @@ class ListPreferences(BaseCommand):
         )
 
     async def run(self, parsed, message, session, bot) -> bool:
-        prefs = '\n'.join([f'{k}: {v}' for k, v in session.preferences.items()])
+        prefs = '\n'.join([f'- {k}: {v}' for k, v in session.preferences.items()])
         if len(prefs) == 0:
             msg = 'No preferences set'
         else:

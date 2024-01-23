@@ -152,7 +152,7 @@ class CachedSession(Session):
 
     def persist(self, db):
         if self.dirty:  # commit changes
-            db.set_chat_context(self.app_name, self.chat_id, self.context, self.preferences)
+            db.set_chat_context(self.app_name, self.user_id, self.context, self.preferences)
             self.dirty = False
 
     def set_preference(self, key, val):
@@ -166,7 +166,8 @@ class CachedSession(Session):
         super().set(key, value)
 
     def clear(self, clear_user=False):
-        self.dirty = True
+        if len(self.context) > 0:
+            self.dirty = True
         super().clear(clear_user)
 
     @classmethod

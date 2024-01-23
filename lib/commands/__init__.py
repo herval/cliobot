@@ -10,14 +10,13 @@ class BasePrompt(BaseModel):
 
 
 async def send_error_message_image(messaging_service, text, message):
-    try:
-        await messaging_service.delete_message(
-            chat_id=message.chat_id,
-            message_id=message.message_id,
-        )
-    except Exception as e:
-        print(e)
-
+    # try:
+    #     await messaging_service.delete_message(
+    #         chat_id=message.chat_id,
+    #         message_id=message.message_id,
+    #     )
+    # except Exception as e:
+    #     print(e)
     await send_error_message(messaging_service, text, message.chat_id)
 
 

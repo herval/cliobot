@@ -4,7 +4,7 @@ from pathlib import Path
 
 import requests
 
-from lib.utils import md5_hash, abs_path
+from lib.utils import md5_hash, abs_path, base64_to_bytes
 
 
 def asset_filename(folder, user_id, filename):
@@ -42,7 +42,9 @@ async def cached_get_file(file_id, bot, session) -> Path:
 
 
 def get_data(filepath):
-    if os.path.exists(filepath):
+    if filepath.startswith('data:'):
+        return base64_to_bytes(filepath)
+    elif os.path.exists(filepath):
         with open(filepath, 'rb') as f:
             data = f.read()
             return data
@@ -54,6 +56,10 @@ def get_data(filepath):
 
 
 def hashed_filename(local_path):
+    if local_path.startswith('data:'):
+        ext = local_path.split(';')[0].split('/')[-1]
+        return md5_hash(local_path) + '.' + ext
+
     ext = local_path.split('.')[-1]
     if '?' in ext:
         ext = ext.split('?')[0]

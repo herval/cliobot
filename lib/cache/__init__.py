@@ -14,7 +14,7 @@ class BaseCache:
     def set_preferences(self, user_id, prefs):
         raise NotImplementedError()
 
-    def set_chat_context(self, app_name, chat_id, context):
+    def set_chat_context(self, app_name, user_id, context):
         raise NotImplementedError()
 
 
@@ -35,6 +35,6 @@ class InMemoryCache(BaseCache):
     def set_preferences(self, user_id, prefs):
         self.cache[f'prefs_{user_id}'] = prefs
 
-    def set_chat_context(self, app_name, chat_id, context):
-        self.cache[f'context_{app_name}_{chat_id}'] = context
+    def set_chat_context(self, app_name, user_id, context):
+        self.cache[f'context_{app_name}_{user_id}'] = context
 

@@ -1,21 +1,13 @@
-import io
-import random
 import unittest
 
-from PIL import Image
-
 from lib.config import load_config
-from lib.utils import abs_path, base64_to_bytes
-from lib.webui.client import WebuiClient, Txt2imgPrompt
+from lib.utils import abs_path
+from lib.webui.client import WebuiClient, Txt2imgPrompt, save_image
 
 
 def save_images(imgs):
     for img in imgs:
-        image = Image.open(
-            io.BytesIO(
-                base64_to_bytes(img.url)
-            ))
-        image.save(abs_path(f'tmp/{str(random.random())}.png'))
+        save_image(img.url, abs_path('tmp'))
 
 
 class TestWebuiClient(unittest.IsolatedAsyncioTestCase):

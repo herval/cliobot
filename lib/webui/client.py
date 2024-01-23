@@ -1,8 +1,25 @@
 import base64
+import io
+import os.path
+import random
 
 import requests
+from PIL import Image
 
 from lib.commands import Model, BasePrompt, GenerationResults
+from lib.utils import base64_to_bytes, abs_path
+
+
+def save_image(base64data, folder):
+    image = Image.open(
+        io.BytesIO(
+            base64_to_bytes(base64data)
+        ))
+    filepath = abs_path(os.path.join(
+        folder,
+        f'{str(int(random.random() * 100000000))}.png'))
+    image.save(filepath)
+    return filepath
 
 
 class Txt2imgPrompt(BasePrompt):
@@ -27,13 +44,15 @@ class Txt2img(Model):
 
     async def generate(self, prompt):
         print("here!", prompt)
+        return await self.client.txt2img(prompt)
 
 
 class WebuiClient:
 
-    def __init__(self, endpoint, auth):
+    def __init__(self, endpoint, auth, temp_dir):
         self.endpoint = endpoint
         self.auth = auth  # TODO use
+        self.temp_dir = temp_dir
 
     def get_models(self):
         return self._get(f'/sdapi/v1/sd-models')
@@ -53,13 +72,13 @@ class WebuiClient:
         }
 
         r = self._post(f'/sdapi/v1/txt2img', params)
-        print(r)
 
         imgs = []
 
         for i in r['images']:
+            path = save_image(i, self.temp_dir)
             imgs.append({
-                'url': i,
+                'url': path,
                 'prompt': parsed.prompt,
             })
 
