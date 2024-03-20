@@ -2,9 +2,11 @@ import asyncio
 import os
 import queue
 import threading
+import traceback
+from sys import exc_info
+from typing import Callable
 
 from cliobot.cache import InMemoryCache
-from cliobot.db import InMemoryDb
 from cliobot.errors import BaseErrorHandler
 from cliobot.metrics import BaseMetrics
 
@@ -73,7 +75,6 @@ class User:
 # preferences = the "long term memory" of the bot. It survives until a user logs off
 class Session:
     def __init__(self, user_id, chat_id, context, preferences):
-        self.context = {}
         self.user_id = user_id
         self.chat_id = chat_id
         self.preferences = {}
@@ -182,6 +183,83 @@ class CachedSession(Session):
             chat_id=chat_id,
         )
 
+class MessageHandler:
+    """
+    base class for message handlers
+    """
+    def __init__(self):
+        self.running = True
+        self.sender_loop = None
+
+    async def process(self, message: Message, session: CachedSession, bot):
+        raise NotImplementedError
+
+    def listen(self, bot):
+        self.sender_loop = asyncio.new_event_loop()
+
+        asyncio.set_event_loop(self.sender_loop)
+        self.sender_loop.run_until_complete(self._poll(bot))
+
+    def stop(self):
+        self.running = False
+        self.sender_loop.stop()
+
+
+    async def _poll(self, bot):
+        while self.running:
+            try:
+                message = bot.internal_queue.get()
+                await self._handle_message(message, bot)
+            except (KeyboardInterrupt, SystemExit):
+                print("Shutting down...")
+                self.running = False
+                return
+            except Exception:
+                traceback.print_exc()
+                bot.metrics.capture_exception(exc_info(), 'anonymous')
+            finally:
+                bot.internal_queue.task_done()
+
+    async def _handle_message(self, message: Message, bot):
+        print('on_message', message.__str__())
+        session = CachedSession.from_cache(
+            db=bot.db,
+            user_id=message.user_id,
+            chat_id=message.chat_id)
+
+        bot.metrics.error_handler.set_context({
+            "id": session.user_id,
+        })
+
+        try:
+            bot.db.save_message(
+                user_id=message.user_id,
+                chat_id=message.chat_id,
+                text=message.text or '',
+                external_id=message.message_id,
+                image=message.image,
+                video=message.video,
+                audio=message.audio,
+                voice=message.voice,
+                is_forward=message.is_forward,
+            )
+        except Exception as e:
+            bot.metrics.capture_exception(e, session.user_id)
+
+        if session.user_id is None:
+            session = bot.db.create_or_get_chat_session(message.user_id)
+            print(session)
+            session.chat_id = message.chat_id
+            session.user_id = session.get('external_user_id', None)
+
+        if message.reply_to_message_id and not message.reply_to_message:
+            print("Loading reply...")
+            message.reply_to_message = await bot.messaging_service.get_message(message.reply_to_message_id)
+
+        message.translate(bot.translator)
+
+        await self.process(message, session, bot)
+
 
 class MessagingService:
 
@@ -218,12 +296,14 @@ class MessagingService:
         raise NotImplementedError()
 
 
+
+
 class BaseBot:
 
     def __init__(self,
-                 handler_fn,
-                 commands,
-                 db=None,
+                 handler_fn: Callable[[], MessageHandler],
+                 messaging_service: MessagingService,
+                 db,
                  storage=None,
                  internal_queue=None,
                  bot_id=None,
@@ -232,17 +312,18 @@ class BaseBot:
                  translator=None,
                  metrics=None,
                  ):
+        self.messaging_service = messaging_service
         self.internal_queue = internal_queue or queue.Queue()
         self.translator = translator
-        self.db = db or InMemoryDb()
+        self.db = db
         self.storage = storage
         self.bot_id = bot_id
-        self.commands = commands
         self.bot = None
         self.bot_language = bot_language
         self.cache = cache or InMemoryCache()
         self.metrics = metrics or BaseMetrics(BaseErrorHandler())
         self.models = {}
+        self.handler_fn = handler_fn
 
         self.senders = [handler_fn() for _ in range(int(os.cpu_count()))]
 
@@ -260,7 +341,7 @@ class BaseBot:
         # initialize the bot commands list and stuff
         loop = asyncio.new_event_loop()
         loop.run_until_complete(self.initialize())
-        loop.stop()
+        loop.close()
 
         # start everything
         [t.start() for t in self.threads]
