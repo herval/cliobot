@@ -3,8 +3,8 @@ from unittest import mock
 
 from pydantic_core._pydantic_core import ValidationError
 
-from lib.bots import MessagingService, Message, Session
-from lib.commands import to_params, notify_errors
+from cliobot.bots import MessagingService, Message, Session
+from cliobot.commands import to_params, notify_errors
 
 
 def msg(txt):
@@ -21,7 +21,6 @@ def session(ctx, prefs):
     return Session(
         user_id='123',
         chat_id='456',
-        app_name='test',
         context=ctx,
         preferences=prefs,
     )
@@ -29,7 +28,7 @@ def session(ctx, prefs):
 
 class TestCommandHandler(unittest.IsolatedAsyncioTestCase):
 
-    def test_parse_message(self):
+    async def test_parse_message(self):
         valid_res = to_params(
             msg("/test hello world ! --bla abc def"),
             session({}, {}),
@@ -55,14 +54,14 @@ class TestCommandHandler(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(valid_res['bla'], 'abc def')
         self.assertEqual(valid_res['ble'], '3')
 
-    def test_notify_errors(self):
+    async def test_notify_errors(self):
         ms = mock.Mock(MessagingService)
         err = mock.Mock(ValidationError)
         err.errors.return_value = [
             {'loc': ('bla',), 'msg': 'foo'}
         ]
 
-        notify_errors(
+        await notify_errors(
             err,
             ms,
             123)

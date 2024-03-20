@@ -1,8 +1,8 @@
 import unittest
 
-from lib.config import load_config
-from lib.ollama.client import OllamaText, OllamaPrompt
-from lib.utils import abs_path
+from cliobot.config import load_config
+from cliobot.ollama.client import OllamaText, OllamaPrompt
+from cliobot.utils import abs_path
 
 
 class TestOllamaClient(unittest.IsolatedAsyncioTestCase):

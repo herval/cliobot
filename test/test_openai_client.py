@@ -1,9 +1,9 @@
 import unittest
 
-from lib.config import load_config
-from lib.metrics import BaseMetrics
-from lib.openai.client import OpenAIClient
-from lib.utils import abs_path
+from cliobot.config import load_config
+from cliobot.metrics import BaseMetrics
+from cliobot.openai.client import OpenAIClient
+from cliobot.utils import abs_path
 
 
 class TestOpenAIClient(unittest.TestCase):

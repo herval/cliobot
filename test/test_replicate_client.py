@@ -1,8 +1,8 @@
 import unittest
 
-from lib.config import load_config
-from lib.replicate.client import ReplicateEndpoint
-from lib.utils import abs_path
+from cliobot.config import load_config
+from cliobot.replicate.client import ReplicateEndpoint
+from cliobot.utils import abs_path
 
 
 class TestReplicateClient(unittest.IsolatedAsyncioTestCase):

@@ -1,8 +1,8 @@
 import unittest
 
-from lib.config import load_config
-from lib.utils import abs_path
-from lib.webui.client import WebuiClient, Txt2imgPrompt, save_image
+from cliobot.config import load_config
+from cliobot.utils import abs_path
+from cliobot.webui.client import WebuiClient, Txt2imgPrompt, save_image
 
 
 def save_images(imgs):
