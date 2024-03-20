@@ -313,6 +313,7 @@ class TelegramBot(BaseBot):
                  db,
                  **kwargs
                  ):
+        self.apikey = apikey
         self.messaging_service = TelegramMessagingService(
             apikey=apikey,
             db=db,

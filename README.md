@@ -27,10 +27,33 @@ browsing the web).
 Notice both modes use the same command definitions, so the only difference between them is a tradeoff between more
 natural language interpretation versus cost (since running GPT4 & other models can get expensive quickly).
 
+### Running the bot
+
+1. Install all dependencies with:
+
+```
+poetry install
+```
+
+2. Rename `config.example.yml` to `config.yml` and set the appropriate variables you want.
+
+3. Run the bot using the following command:
+
+```
+poetry run python fullbot.py
+```
+
+The codebase includes other examples, such as a simple chat-only bot that uses OpenAI's API to respond to messages (`chatbot.py`). Documentation for these examples is still a work in progress.
+
+
+### Running tests
+```
+poetry run pytest
+```
+
 ## Built-in commands
 
-Cliobot comes with a set of built-in commands that you can use out of the box. You can also easily add your own
-commands!
+Cliobot comes with a set of built-in commands that you can use out of the box. You can also easily add your own!
 
 ### /image
 
