@@ -3,22 +3,17 @@ import traceback
 from sys import exc_info
 from typing import Optional
 
-from cliobot.bots import Message, CachedSession
+from cliobot.bots import Message, CachedSession, MessageHandler
 from cliobot.commands import BaseCommand
 
-
-class CommandHandler:
+class CommandHandler(MessageHandler):
     """
     Simple handler that just executes commands using a slash command syntax
     """
 
-    def __init__(self,
-                 fallback_commands: dict,
-                 commands,
-                 ):
+    def __init__(self, fallback_commands: dict, commands):
+        super().__init__()
         self.fallback_commands = fallback_commands
-        self.running = True
-        self.sender_loop = None
         self.commands = commands
         self.command_handlers = {c.command: c for c in commands}
         self.reply_handlers = [c.command for c in commands if c.reply_only]
@@ -56,43 +51,7 @@ class CommandHandler:
         finally:
             session.persist(bot.db)
 
-    async def message_handler(self, message: Message, bot):
-        print('on_message', message.__str__())
-        session = CachedSession.from_cache(
-            db=bot.db,
-            user_id=message.user_id,
-            chat_id=message.chat_id)
-
-        bot.metrics.error_handler.set_context({
-            "id": session.user_id,
-        })
-
-        try:
-            bot.db.save_message(
-                user_id=message.user_id,
-                chat_id=message.chat_id,
-                text=message.text or '',
-                external_id=message.message_id,
-                image=message.image,
-                video=message.video,
-                audio=message.audio,
-                voice=message.voice,
-                is_forward=message.is_forward,
-            )
-        except Exception as e:
-            bot.metrics.capture_exception(e, session.user_id)
-
-        if session.user_id is None:
-            session = bot.db.create_or_get_chat_session(message.user_id)
-            session.chat_id = message.chat_id
-            session.user_id = session.get('external_user_id', None)
-
-        if message.reply_to_message_id and not message.reply_to_message:
-            print("Loading reply...")
-            message.reply_to_message = await bot.messaging_service.get_message(message.reply_to_message_id)
-
-        message.translate(bot.translator)
-
+    async def process(self, message: Message, session: CachedSession, bot):
         inf = self.infer_command(message, session)
         if inf is not None:  # handle as a command input
             bot.metrics.send_event(
@@ -126,32 +85,6 @@ class CommandHandler:
             else:
                 fallback = None
 
-
             if fallback in self.command_handlers:
                 message.text = f'/{fallback} {message.text}'.strip()
                 await self.exec(self.command_handlers[fallback], message, session, bot)
-
-    async def poll(self, bot):
-        while self.running:
-            try:
-                message = bot.internal_queue.get()
-                await self.message_handler(message, bot)
-            except (KeyboardInterrupt, SystemExit):
-                print("Shutting down...")
-                self.running = False
-                return
-            except Exception:
-                traceback.print_exc()
-                bot.metrics.capture_exception(exc_info(), 'anonymous')
-            finally:
-                bot.internal_queue.task_done()
-
-    def listen(self, bot):
-        self.sender_loop = asyncio.new_event_loop()
-
-        asyncio.set_event_loop(self.sender_loop)
-        self.sender_loop.run_until_complete(self.poll(bot))
-
-    def stop(self):
-        self.running = False
-        self.sender_loop.stop()

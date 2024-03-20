@@ -234,7 +234,6 @@ class ConfigLoader:
         plat = self.config['bot']['platform']
         if plat == 'telegram':
             from cliobot.bots.telegram_bot import TelegramBot
-            from cliobot.bots.telegram_bot import telegram_bot_id
 
             apikey = self.config['bot']['token']
 
@@ -246,7 +245,6 @@ class ConfigLoader:
                 apikey=apikey,
                 bot_language='en',
                 cache=cache,
-                commands=commands,
                 metrics=metrics,
                 handler_fn=handler,
             )

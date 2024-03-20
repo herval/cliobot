@@ -11,6 +11,7 @@ from telegram.ext import ApplicationBuilder, ConversationHandler, MessageHandler
     filters
 
 from cliobot.bots import Message, User, MessagingService, BaseBot
+from cliobot.bots.command_handler import CommandHandler
 from cliobot.errors import TransientFailure, UserBlocked, UnknownError, MessageNoLongerExists, MessageNotModifiable
 from cliobot.utils import flatten
 
@@ -120,11 +121,10 @@ threadlocal_bot = contextvars.ContextVar("bot_instance", default=None)
 
 
 class TelegramMessagingService(MessagingService):
-    def __init__(self, apikey, commands, db):
+    def __init__(self, apikey, db):
         self.apikey = apikey
         self.bot_id = telegram_bot_id(apikey)
         self.db = db
-        self.commands = commands
 
     async def initialize(self) -> Bot:
         if not threadlocal_bot.get():
@@ -309,34 +309,31 @@ def reply_markup(reply_buttons):
 class TelegramBot(BaseBot):
     def __init__(self,
                  apikey,
-                 commands,
                  db,
                  **kwargs
                  ):
         self.apikey = apikey
-        self.messaging_service = TelegramMessagingService(
-            apikey=apikey,
-            db=db,
-            commands=commands,
-        )
         self.app = ApplicationBuilder().token(apikey).build()
 
         super().__init__(
-            commands=commands,
             db=db,
             bot_id=telegram_bot_id(apikey),
+            messaging_service=TelegramMessagingService(
+                apikey=apikey,
+                db=db,
+            ),
             **kwargs,
         )
 
     def handler_adapter(self, command):
         async def wrapper(message, context):
-            print(message, context)
             msg = await self._parse_message(
                 message=message.effective_message,
                 user=message.effective_user,
                 chat=message.effective_chat,
                 context=context,
                 callback_query=message.callback_query)
+            print(message, context, msg)
 
             await self.enqueue(msg)
 
@@ -357,13 +354,15 @@ class TelegramBot(BaseBot):
         bot = Bot(self.apikey)
         # sharing a bot between threads blows things up
         await bot.initialize()
-        await bot.set_my_commands(
-            commands=[
-                BotCommand(
-                    c.command,
-                    c.description,
-                ) for c in self.commands
-            ])
+
+        if isinstance(self.senders[0], CommandHandler):
+            await bot.set_my_commands(
+                commands=[
+                    BotCommand(
+                        c.command,
+                        c.description,
+                    ) for c in self.senders[0].commands
+                ])
 
     def start(self):
         self.app.run_polling()
